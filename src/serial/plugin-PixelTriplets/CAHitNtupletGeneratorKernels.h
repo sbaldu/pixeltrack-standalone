@@ -3,6 +3,10 @@
 
 #include "CUDADataFormats/PixelTrackHeterogeneous.h"
 #include "GPUCACell.h"
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
 
 namespace cAHitNtupletGenerator {
@@ -48,6 +52,16 @@ namespace cAHitNtupletGenerator {
     region quadruplet;
   };
 
+  inline int16_t stos (std::string str){
+    int value = std::stoi(str);
+
+    if (value < std::numeric_limits<short>::min() || value > std::numeric_limits<short>::max()) {
+      throw std::range_error("String value out of range for short");
+    }
+
+    return static_cast<short>(value);
+  }
+
   // params
   struct Params {
     Params(bool onGPU,
@@ -89,7 +103,45 @@ namespace cAHitNtupletGenerator {
           hardCurvCut_(hardCurvCut),
           dcaCutInnerTriplet_(dcaCutInnerTriplet),
           dcaCutOuterTriplet_(dcaCutOuterTriplet),
-          cuts_(cuts) {}
+          cuts_(cuts) {
+
+	    std::ifstream file("/nfshome0/srossiti/data/pixeltrack-standalone/params.txt");
+	    if (!file.is_open()) {
+	      std::cout<<"No file opened\n";
+	      return;
+	    }
+
+	    std::vector<std::string> params_from_file;
+	    std::string line;
+	    while(std::getline(file, line)){
+	      std::string value;
+	      std::vector<std::string> row;
+	      std::stringstream sstr(line);
+	      while(std::getline(sstr, value, ','))
+		row.push_back(value);
+	      params_from_file.insert(params_from_file.end(), row.begin(), row.end());
+	    }
+	    std::cout<<"File opened\n";
+	    CAThetaCutBarrel_ = std::stof(params_from_file[0]);
+	    CAThetaCutForward_ = std::stof(params_from_file[1]);
+	    dcaCutInnerTriplet_ = std::stof(params_from_file[2]);
+	    dcaCutOuterTriplet_ = std::stof(params_from_file[3]);
+	    hardCurvCut_ = std::stof(params_from_file[4]);
+	    doZ0Cut_ = std::stof(params_from_file[5]);
+	    int16_t phiCuts[47] = {
+	      stos(params_from_file[6]), stos(params_from_file[7]), stos(params_from_file[8]), stos(params_from_file[9]), stos(params_from_file[0]), 
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), 
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), 
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), 
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+	      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), 
+	      stos(params_from_file[0]), stos(params_from_file[0])
+	    };
+	    phiCuts_ = phiCuts;
+	  }
 
     const bool onGPU_;
     const uint32_t minHitsPerNtuplet_;
@@ -102,15 +154,15 @@ namespace cAHitNtupletGenerator {
     const bool idealConditions_;
     const bool doStats_;
     const bool doClusterCut_;
-    const bool doZ0Cut_;
+    bool doZ0Cut_;
     const bool doPtCut_;
     const float ptmin_;
-    const float CAThetaCutBarrel_;
-    const float CAThetaCutForward_;
-    const float hardCurvCut_;
-    const float dcaCutInnerTriplet_;
-    const float dcaCutOuterTriplet_;
-
+    float CAThetaCutBarrel_;
+    float CAThetaCutForward_;
+    float hardCurvCut_;
+    float dcaCutInnerTriplet_;
+    float dcaCutOuterTriplet_;
+    int16_t* phiCuts_;
     // quality cuts
     QualityCuts cuts_{// polynomial coefficients for the pT-dependent chi2 cut
                       {0.68177776, 0.74609577, -0.08035491, 0.00315399},
@@ -130,7 +182,6 @@ namespace cAHitNtupletGenerator {
                           0.3,  // pT > 0.3 GeV
                           12.0  // |Zip| < 12.0 cm
                       }};
-
   };  // Params
 
 }  // namespace cAHitNtupletGenerator
@@ -200,6 +251,7 @@ private:
   unique_ptr<TupleMultiplicity> device_tupleMultiplicity_;
 
   unique_ptr<cms::cuda::AtomicPairCounter::c_type[]> device_storage_;
+
   // params
   Params const& m_params;
 };

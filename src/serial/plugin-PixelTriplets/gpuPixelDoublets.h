@@ -68,12 +68,17 @@ namespace gpuPixelDoublets {
                                 TrackingRecHit2DSOAView const* __restrict__ hhp,
                                 GPUCACell::OuterHitOfCell* isOuterHitOfCell,
                                 int nActualPairs,
-                                bool ideal_cond,
+				bool ideal_cond,
                                 bool doClusterCut,
                                 bool doZ0Cut,
                                 bool doPtCut,
-                                uint32_t maxNumOfDoublets) {
+                                uint32_t maxNumOfDoublets,
+                                int16_t* phiCuts=nullptr
+				) {
     auto const& __restrict__ hh = *hhp;
+    if (phiCuts==nullptr) {
+        phiCuts=const_cast<int16_t*>(phicuts);
+    }
     doubletsFromHisto(layerPairs,
                       nActualPairs,
                       cells,
