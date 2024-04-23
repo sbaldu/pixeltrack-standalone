@@ -10,7 +10,7 @@
 
 class CAHitNtupletCUDAfromFile : public edm::EDProducer {
 public:
-  explicit CAHitNtupletCUDAfromFile(edm::ProductRegistry& reg, const std::string& filename);
+  explicit CAHitNtupletCUDAfromFile(edm::ProductRegistry& reg);
   ~CAHitNtupletCUDAfromFile() override = default;
 
 private:
@@ -22,10 +22,10 @@ private:
   CAHitNtupletGeneratorOnGPU gpuAlgo_;
 };
 
-CAHitNtupletCUDAfromFile::CAHitNtupletCUDAfromFile(edm::ProductRegistry& reg, const std::string& filename)
+CAHitNtupletCUDAfromFile::CAHitNtupletCUDAfromFile(edm::ProductRegistry& reg)
     : tokenHitCPU_{reg.consumes<TrackingRecHit2DCPU>()},
       tokenTrackCPU_{reg.produces<PixelTrackHeterogeneous>()},
-      gpuAlgo_(reg, filename) {}
+      gpuAlgo_(reg, "/nfshome0/srossiti/data/pixeltrack-standalone/params.txt") {}
 
 void CAHitNtupletCUDAfromFile::produce(edm::Event& iEvent, const edm::EventSetup& es) {
   auto bf = 0.0114256972711507;  // 1/fieldInGeV
