@@ -9,6 +9,8 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 #include "Framework/Event.h"
 
@@ -20,33 +22,43 @@ namespace {
   T sqr(T x) {
     return x * x;
   }
-  
-  int16_t * makePhiCuts(){
+
+  inline int16_t stos(std::string str) {
+    int value = std::stoi(str);
+
+    if (value < std::numeric_limits<short>::min() || value > std::numeric_limits<short>::max()) {
+      throw std::range_error("String value out of range for short");
+    }
+
+    return static_cast<short>(value);
+  }
+
+  int16_t* makePhiCuts() {
     constexpr int nPairs = 13 + 2 + 4;
 
     constexpr int16_t phi0p05 = 522;  // round(521.52189...) = phi2short(0.05);
     constexpr int16_t phi0p06 = 626;  // round(625.82270...) = phi2short(0.06);
     constexpr int16_t phi0p07 = 730;  // round(730.12648...) = phi2short(0.07);
 
-    return new int16_t[nPairs]{ phi0p05,
-                                phi0p07,
-                                phi0p07,
-                                phi0p05,
-                                phi0p06,
-                                phi0p06,
-                                phi0p05,
-                                phi0p05,
-                                phi0p06,
-                                phi0p06,
-                                phi0p06,
-                                phi0p05,
-                                phi0p05,
-                                phi0p05,
-                                phi0p05,
-                                phi0p05,
-                                phi0p05,
-                                phi0p05,
-                                phi0p05};
+    return new int16_t[nPairs]{phi0p05,
+                               phi0p07,
+                               phi0p07,
+                               phi0p05,
+                               phi0p06,
+                               phi0p06,
+                               phi0p05,
+                               phi0p05,
+                               phi0p06,
+                               phi0p06,
+                               phi0p06,
+                               phi0p05,
+                               phi0p05,
+                               phi0p05,
+                               phi0p05,
+                               phi0p05,
+                               phi0p05,
+                               phi0p05,
+                               phi0p05};
     //   phi0p07, phi0p07, phi0p06,phi0p06, phi0p06,phi0p06};  // relaxed cuts
   }
 
@@ -77,28 +89,120 @@ namespace {
 
 using namespace std;
 CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg)
-    : m_params(false,             // onGPU
-               3,                 // minHitsPerNtuplet,
-               4587520,           // maxNumberOfDoublets
-               false,             //useRiemannFit
-               true,              // fit5as4,
-               true,              //includeJumpingForwardDoublets
-               true,              // earlyFishbone
-               false,             // lateFishbone
-               true,              // idealConditions
-               false,             //fillStatistics
-               true,              // doClusterCut
-               true,              // doZ0Cut
-               true,              // doPtCut
-               0.899999976158,    // ptmin
-               0.00200000009499,  // CAThetaCutBarrel
-               0.00300000002608,  // CAThetaCutForward
-               0.0328407224959,   // hardCurvCut
-               0.15000000596,     // dcaCutInnerTriplet
-               0.25,              // dcaCutOuterTriplet
-               makeQualityCuts(), // QualityCuts
-               makePhiCuts())     // phiCuts
-               {
+    : m_params(false,              // onGPU
+               3,                  // minHitsPerNtuplet,
+               458752,             // maxNumberOfDoublets
+               false,              //useRiemannFit
+               true,               // fit5as4,
+               true,               //includeJumpingForwardDoublets
+               true,               // earlyFishbone
+               false,              // lateFishbone
+               true,               // idealConditions
+               false,              //fillStatistics
+               true,               // doClusterCut
+               true,               // doZ0Cut
+               true,               // doPtCut
+               0.899999976158,     // ptmin
+               0.00200000009499,   // CAThetaCutBarrel
+               0.00300000002608,   // CAThetaCutForward
+               0.0328407224959,    // hardCurvCut
+               0.15000000596,      // dcaCutInnerTriplet
+               0.25,               // dcaCutOuterTriplet
+               makeQualityCuts(),  // QualityCuts
+               makePhiCuts())      // phiCuts
+{
+#ifdef DUMP_GPU_TK_TUPLES
+  printf("TK: %s %s % %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+         "tid",
+         "qual",
+         "nh",
+         "charge",
+         "pt",
+         "eta",
+         "phi",
+         "tip",
+         "zip",
+         "chi2",
+         "h1",
+         "h2",
+         "h3",
+         "h4",
+         "h5");
+#endif
+
+  m_counters = new Counters();
+  memset(m_counters, 0, sizeof(Counters));
+}
+
+CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg, std::string filename)
+    : m_params(false,              // onGPU
+               3,                  // minHitsPerNtuplet,
+               458752,             // maxNumberOfDoublets
+               false,              //useRiemannFit
+               true,               // fit5as4,
+               true,               //includeJumpingForwardDoublets
+               true,               // earlyFishbone
+               false,              // lateFishbone
+               true,               // idealConditions
+               false,              //fillStatistics
+               true,               // doClusterCut
+               true,               // doZ0Cut
+               true,               // doPtCut
+               0.899999976158,     // ptmin
+               0.00200000009499,   // CAThetaCutBarrel
+               0.00300000002608,   // CAThetaCutForward
+               0.0328407224959,    // hardCurvCut
+               0.15000000596,      // dcaCutInnerTriplet
+               0.25,               // dcaCutOuterTriplet
+               makeQualityCuts(),  // QualityCuts
+               makePhiCuts())      // phiCuts
+{
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    printf("No file opened\n");
+    return;
+  }
+
+  std::vector<std::string> params_from_file;
+  std::string line;
+  while (std::getline(file, line)) {
+    std::string value;
+    std::vector<std::string> row;
+    std::stringstream sstr(line);
+    while (std::getline(sstr, value, ','))
+      row.push_back(value);
+    params_from_file.insert(params_from_file.end(), row.begin(), row.end());
+  }
+  std::cout << "File opened\n";
+  float CAThetaCutBarrel_ = std::stof(params_from_file[0]);
+  float CAThetaCutForward_ = std::stof(params_from_file[1]);
+  float dcaCutInnerTriplet_ = std::stof(params_from_file[2]);
+  float dcaCutOuterTriplet_ = std::stof(params_from_file[3]);
+  float hardCurvCut_ = std::stof(params_from_file[4]);
+  bool doZ0Cut_ = std::stof(params_from_file[5]);
+  int16_t phiCuts[47] = {
+      stos(params_from_file[6]), stos(params_from_file[7]), stos(params_from_file[8]), stos(params_from_file[9]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
+      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0])};
+
+  m_params.doZ0Cut_=doZ0Cut_;
+  m_params.CAThetaCutBarrel_=CAThetaCutBarrel_;
+  m_params.CAThetaCutForward_=CAThetaCutForward_;
+  m_params.hardCurvCut_=hardCurvCut_;
+  m_params.dcaCutInnerTriplet_=dcaCutInnerTriplet_;
+  m_params.dcaCutOuterTriplet_=dcaCutOuterTriplet_;
+  m_params.phiCuts_=phiCuts;
+
+
 #ifdef DUMP_GPU_TK_TUPLES
   printf("TK: %s %s % %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
          "tid",
