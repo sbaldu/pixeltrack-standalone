@@ -32,7 +32,7 @@ public:
 public:
   CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg);
 
-  CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg, std::string filename);
+  CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg, const std::string& filename);
 
   ~CAHitNtupletGeneratorOnGPU();
 

@@ -134,7 +134,7 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
   memset(m_counters, 0, sizeof(Counters));
 }
 
-CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg, std::string filename)
+CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg, const std::string& filename)
     : m_params(false,              // onGPU
                3,                  // minHitsPerNtuplet,
                458752,             // maxNumberOfDoublets
