@@ -31,6 +31,7 @@ Options:
   --data                        Path to the 'data' directory (default 'data' in the directory of the executable).
   --validation                  Run (rudimentary) validation at the end.
   --histogram                   Produce histograms at the end.
+  --objective                   Produce file with efficiency and fake rates at the end.
   --empty                       Ignore all producers (for testing only).
 )";
   }
@@ -47,6 +48,7 @@ int main(int argc, char** argv) {
   std::filesystem::path datadir;
   bool validation = false;
   bool histogram = false;
+  bool objective = false;
   bool empty = false;
   for (auto i = args.begin() + 1, e = args.end(); i != e; ++i) {
     if (*i == "-h" or *i == "--help") {
@@ -74,6 +76,8 @@ int main(int argc, char** argv) {
       validation = true;
     } else if (*i == "--histogram") {
       histogram = true;
+    } else if (*i == "--objective") {
+      objective = true;
     } else if (*i == "--empty") {
       empty = true;
     } else {
@@ -117,6 +121,9 @@ int main(int argc, char** argv) {
     }
     if (histogram) {
       edmodules.emplace_back("HistoValidator");
+    }
+    if (objective) {
+      edmodules.emplace_back("ObjectiveProducer");
     }
   }
   edm::EventProcessor processor(warmupEvents,

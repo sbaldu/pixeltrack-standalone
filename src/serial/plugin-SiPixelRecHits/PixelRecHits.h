@@ -70,6 +70,23 @@ namespace pixelgpudetails {
         ++nHits;
       }
 
+      std::ifstream iFileTruth("data/track-ml/hits_1000.csv");
+      if (!iFileTruth.is_open()) {
+        std::cerr << "Error opening file" << std::endl;
+      }
+
+      // TODO: maybe add a bit of error handling in the header
+      getline(iFileTruth, line);
+      while (getline(iFileTruth, line)) {
+        std::stringstream fileStream(line);
+        std::string temp;
+
+        getline(fileStream, temp, ',');
+        hits.particle_indexes.push_back(std::stoi(temp));
+      }
+
+      
+
       std::vector<uint32_t> layerStart_ = {0};
       for (size_t j{1}; j < hits.global_indexes.size() - 1; ++j) {
         if (hits.global_indexes[j + 1] != hits.global_indexes[j]) {
