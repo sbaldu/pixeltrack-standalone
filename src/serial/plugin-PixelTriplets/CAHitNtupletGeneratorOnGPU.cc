@@ -119,20 +119,5 @@ PixelTrackHeterogeneous CAHitNtupletGeneratorOnGPU::makeTuples(
 
   // note: the fits have been disabled
 
-  // print tracks and save to file
-  const std::string trackPath = "../../../data/tracks/test.dat";
-  std::ofstream trackFile;
-  trackFile.open(trackPath);
-  int ind = 0;
-  for (auto& hi : soa->hitIndices.off) {
-    for (auto& ho : soa->hitIndices) {
-      std::cout << ho + hi << ' ';
-      std::cout << "ho: " << ho << ' ';
-      std::cout << "hi: " << hi << '\n';
-      trackFile << hi + ho << '\n';
-    }
-  }
-
-  trackFile.close();
   return tracks;
 }
