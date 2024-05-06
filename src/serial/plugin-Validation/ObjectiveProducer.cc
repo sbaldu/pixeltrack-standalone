@@ -25,13 +25,14 @@ private:
   edm::EDGetTokenT<PixelTrackHeterogeneous> trackToken_;
 
   static std::map<std::string, float_t> result;
+  uint16_t simulatedTracks_;
 };
 
 std::map<std::string, float_t> ObjectiveProducer::result = {
-  {"reconstructed", 10.f},
-  {"simulated", 5.f},
-  {"fakes", 1.f},
-  {"matching", 1.f},
+  {"reconstructed", 0.f},
+  {"simulated", 0.f},
+  {"fakes", 0.f},
+  {"matching", 0.f},
   {"efficiency", 0.f},
   {"fake_rate", 0.f}
 };
@@ -41,8 +42,21 @@ ObjectiveProducer::ObjectiveProducer(edm::ProductRegistry& reg)
       trackToken_(reg.consumes<PixelTrackHeterogeneous>()) {}
 
 void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  result["matching"] += 1;
-  result["reconstructed"] += 1;
+  // TODO: find a way to do this once per job
+  auto const* hits = iEvent.get(hitToken_).view();
+  auto const nHits = hits->nHits(); 
+  std::set<uint16_t> uniques;
+  for (uint32_t i = 0; i < nHits; ++i) {
+    uniques.insert(hits->particleIndex(i));
+  }
+  simulatedTracks_ = uniques.size();
+
+  // TODO: loop through reconstructed
+  auto const& tracks = iEvent.get(trackToken_);
+    std::cout<<tracks->hitIndices.off<<'\n';
+  
+    // TODO: count tracks with >= 0.75 hits with same p_id  
+
   // auto const* hits = iEvent.get(hitToken_).view();
 
   // auto const nHits = hits->nHits();
@@ -87,6 +101,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 }
 
 void ObjectiveProducer::endJob() {
+  result["simulated"] = simulatedTracks_;
   result["efficiency"] = result["matching"]/result["simulated"];
   result["fakes"] = result["reconstructed"]-result["matching"];
   result["fake_rate"] = result["fakes"]/result["reconstructed"];

@@ -61,6 +61,8 @@ public:
   inline int16_t clusterSizeY(int i) const { return m_ysize[i]; }
   inline uint16_t& detectorIndex(int i) { return m_detInd[i]; }
   inline uint16_t detectorIndex(int i) const { return m_detInd[i]; }
+  inline uint16_t& particleIndex(int i) { return m_pInd[i]; }
+  inline uint16_t particleIndex(int i) const { return m_pInd[i]; }
 
   inline pixelCPEforGPU::ParamsOnGPU const& cpeParams() const { return *m_cpeParams; }
 
@@ -95,6 +97,8 @@ private:
   uint16_t* m_detInd;
 
   // supporting objects
+  uint16_t* m_pInd;
+
   AverageGeometry*
       m_averageGeometry;  // owned (corrected for beam spot: not sure where to host it otherwise)
   pixelCPEforGPU::ParamsOnGPU const* m_cpeParams;  // forwarded from setup, NOT owned
