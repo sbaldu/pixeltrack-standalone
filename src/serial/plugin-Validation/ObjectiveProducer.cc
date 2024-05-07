@@ -53,7 +53,11 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   // TODO: loop through reconstructed
   auto const& tracks = iEvent.get(trackToken_);
-    std::cout<<tracks->hitIndices.off<<'\n';
+  auto* soa = tracks.get();
+  uint16_t nTracks{0};
+  for (auto & d : soa->detIndices){
+    std::cout<<d<<'\n';
+  }
   
     // TODO: count tracks with >= 0.75 hits with same p_id  
 

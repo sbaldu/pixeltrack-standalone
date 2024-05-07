@@ -114,10 +114,5 @@ PixelTrackHeterogeneous CAHitNtupletGeneratorOnGPU::makeTuples(
   kernels.fillHitDetIndices(
       hits_d.view(), soa, nullptr);  // in principle needed only if Hits not "available"
 
-  if (0 == hits_d.nHits())
-    return tracks;
-
-  // note: the fits have been disabled
-
   return tracks;
 }
