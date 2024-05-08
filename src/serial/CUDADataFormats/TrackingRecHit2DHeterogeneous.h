@@ -125,7 +125,7 @@ TrackingRecHit2DHeterogeneous<Traits>::TrackingRecHit2DHeterogeneous(
   view->m_xsize = reinterpret_cast<int16_t*>(get16(2));
   view->m_ysize = reinterpret_cast<int16_t*>(get16(3));
   view->m_detInd = get16(1);
-  view->m_pInd = get16(1);
+  view->m_pInd = reinterpret_cast<int64_t*>(get32(1));
 
   m_hitsLayerStart = view->m_hitsLayerStart = reinterpret_cast<uint32_t*>(get32(n32));
 

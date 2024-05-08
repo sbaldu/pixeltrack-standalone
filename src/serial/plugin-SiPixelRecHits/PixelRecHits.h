@@ -70,7 +70,7 @@ namespace pixelgpudetails {
         ++nHits;
       }
 
-      std::ifstream iFileTruth("data/track-ml/hits_1000.csv");
+      std::ifstream iFileTruth("data/track-ml/truth_1000.csv");
       if (!iFileTruth.is_open()) {
         std::cerr << "Error opening file" << std::endl;
       }
@@ -82,7 +82,7 @@ namespace pixelgpudetails {
         std::string temp;
 
         getline(fileStream, temp, ',');
-        hits.particle_indexes.push_back(std::stoi(temp));
+        hits.particle_indexes.push_back(std::stol(temp));
       }
 
       

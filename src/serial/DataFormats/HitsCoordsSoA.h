@@ -13,7 +13,7 @@ struct HitsCoordsSoA {
   std::vector<float> r;
   std::vector<int16_t> phi;
   std::vector<uint16_t> global_indexes;
-  std::vector<uint16_t> particle_indexes;
+  std::vector<int64_t> particle_indexes;
 
   struct HitsCoordsSoAView {
     float* x;
@@ -22,7 +22,7 @@ struct HitsCoordsSoA {
     float* r;
     int16_t* phi;
     uint16_t* global_indexes;
-    uint16_t* particle_indexes;
+    int64_t* particle_indexes;
 
 	HitsCoordsSoAView() = default;
   };
