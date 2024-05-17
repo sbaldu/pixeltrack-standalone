@@ -83,6 +83,8 @@ namespace pixelgpudetails {
 
         getline(fileStream, temp, ',');
         hits.particle_indexes.push_back(std::stol(temp));
+        getline(fileStream, temp, ',');
+        hits.particle_pTs.push_back(std::stof(temp));
       }
 
       

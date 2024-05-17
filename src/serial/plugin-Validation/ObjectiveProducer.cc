@@ -46,7 +46,8 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto const nHits = hits->nHits(); 
   std::set<int64_t> uniques;
   for (size_t i = 0; i < nHits; ++i) {
-    uniques.insert(hits->particleIndex(i));
+    if (hits->particlePT(i) > 0.899999976158)
+      uniques.insert(hits->particleIndex(i));
   }
   result["simulated"] = uniques.size();
 
@@ -58,11 +59,16 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     indeces.push_back(e);
   }
 
+  // assert(indeces.size() > 0);
+
   for (auto & d : soa->hitIndices.off){
     bool same = true;
-    auto particle = hits->particleIndex(indeces[d]);
+    std::cout << d << '\r';
+    if (d >= indeces.size()) break;
+    auto particle = hits->particleIndex(indeces.at(d));
+    auto pt = hits->particlePT(indeces.at(d));
     for (int i = 1; i < 3; ++i){
-      if (particle != hits->particleIndex(indeces[d+i])){
+      if (particle != hits->particleIndex(indeces.at(d+i))){
         same = false;
         break;
       }
@@ -72,7 +78,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     }
     ++result["reconstructed"];
   }
-
+  std::cout<<'\n';
 
 }
 

@@ -63,6 +63,8 @@ public:
   inline uint16_t detectorIndex(int i) const { return m_detInd[i]; }
   inline int64_t& particleIndex(int i) { return m_pInd[i]; }
   inline int64_t particleIndex(int i) const { return m_pInd[i]; }
+  inline float& particlePT(int i) { return m_pPT[i]; }
+  inline float particlePT(int i) const { return m_pPT[i]; }
 
   inline pixelCPEforGPU::ParamsOnGPU const& cpeParams() const { return *m_cpeParams; }
 
@@ -98,6 +100,7 @@ private:
 
   // supporting objects
   int64_t* m_pInd;
+  float* m_pPT;
 
   AverageGeometry*
       m_averageGeometry;  // owned (corrected for beam spot: not sure where to host it otherwise)

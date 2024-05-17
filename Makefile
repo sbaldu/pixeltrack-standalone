@@ -37,7 +37,7 @@ HOST_CXXFLAGS := -O2 -fPIC -fdiagnostics-show-option -felide-constructors -fmess
 LLVM_UNSUPPORTED_CXXFLAGS := --param vect-max-version-for-alias-checks=50 -Werror=format-contains-nul -Wno-non-template-friend -Werror=return-local-addr
 
 # export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS) -fsanitize=address -O0 -g
-export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS) -g
+export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS)
 export NVCXX_CXXFLAGS := -std=c++20 -O0 -cuda -gpu=managed -stdpar -fpic -gopt $(USER_CXXFLAGS)
 # export LDFLAGS := -O2 -fPIC -pthread -Wl,-E -lstdc++fs -ldl -fsanitize=address
 export LDFLAGS := -O2 -fPIC -pthread -Wl,-E -lstdc++fs -ldl

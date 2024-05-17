@@ -73,11 +73,14 @@ namespace gpuPixelDoublets {
                                 bool doZ0Cut,
                                 bool doPtCut,
                                 uint32_t maxNumOfDoublets,
-                                int16_t* phiCuts=nullptr
+                                std::shared_ptr<int16_t[]> phiCuts=nullptr
 				) {
     auto const& __restrict__ hh = *hhp;
     if (phiCuts==nullptr) {
-        phiCuts=const_cast<int16_t*>(phicuts);
+      phiCuts = std::make_unique<int16_t[]>(nPairs);
+      for (int i = 0; i < nPairs; ++i) {
+        phiCuts[i] = phicuts[i];
+      }
     }
     doubletsFromHisto(layerPairs,
                       nActualPairs,

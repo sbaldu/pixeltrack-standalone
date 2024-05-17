@@ -33,33 +33,42 @@ namespace {
     return static_cast<short>(value);
   }
 
-  int16_t* makePhiCuts() {
+  std::unique_ptr<int16_t[]> makePhiCuts() {
     constexpr int nPairs = 13 + 2 + 4;
 
     constexpr int16_t phi0p05 = 522;  // round(521.52189...) = phi2short(0.05);
     constexpr int16_t phi0p06 = 626;  // round(625.82270...) = phi2short(0.06);
     constexpr int16_t phi0p07 = 730;  // round(730.12648...) = phi2short(0.07);
 
-    return new int16_t[nPairs]{phi0p05,
-                               phi0p07,
-                               phi0p07,
-                               phi0p05,
-                               phi0p06,
-                               phi0p06,
-                               phi0p05,
-                               phi0p05,
-                               phi0p06,
-                               phi0p06,
-                               phi0p06,
-                               phi0p05,
-                               phi0p05,
-                               phi0p05,
-                               phi0p05,
-                               phi0p05,
-                               phi0p05,
-                               phi0p05,
-                               phi0p05};
+    auto phiCuts = std::make_unique<int16_t[]>(nPairs);
+
+    phiCuts[0] = phi0p05;
+    phiCuts[1] = phi0p07;
+    phiCuts[2] = phi0p07;
+    phiCuts[3] = phi0p05;
+    phiCuts[4] = phi0p06;
+    phiCuts[5] = phi0p06;
+    phiCuts[6] = phi0p05;
+    phiCuts[7] = phi0p05;
+    phiCuts[8] = phi0p06;
+    phiCuts[9] = phi0p06;
+    phiCuts[10] = phi0p06;
+    phiCuts[11] = phi0p05;
+    phiCuts[12] = phi0p05;
+    phiCuts[13] = phi0p05;
+    phiCuts[14] = phi0p05;
+    phiCuts[15] = phi0p05;
+    phiCuts[16] = phi0p05;
+    phiCuts[17] = phi0p05;
+    phiCuts[18] = phi0p05;
     //   phi0p07, phi0p07, phi0p06,phi0p06, phi0p06,phi0p06};  // relaxed cuts
+    // phiCuts[19] = phi0p07;
+    // phiCuts[20] = phi0p07;
+    // phiCuts[21] = phi0p06;
+    // phiCuts[22] = phi0p06;
+    // phiCuts[23] = phi0p06;
+    // phiCuts[24] = phi0p06;
+    return phiCuts;
   }
 
   cAHitNtupletGenerator::QualityCuts makeQualityCuts() {
@@ -155,7 +164,7 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                0.15000000596,      // dcaCutInnerTriplet
                0.25,               // dcaCutOuterTriplet
                makeQualityCuts(),  // QualityCuts
-               makePhiCuts())      // phiCuts
+               nullptr)      // phiCuts
 {
   std::ifstream file(filename);
   if (!file.is_open()) {
@@ -180,19 +189,12 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
   float dcaCutOuterTriplet_ = std::stof(params_from_file[3]);
   float hardCurvCut_ = std::stof(params_from_file[4]);
   bool doZ0Cut_ = std::stof(params_from_file[5]);
-  int16_t phiCuts[47] = {
+  int16_t phiCuts[19] = {
       stos(params_from_file[6]), stos(params_from_file[7]), stos(params_from_file[8]), stos(params_from_file[9]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0]),
-      stos(params_from_file[0]), stos(params_from_file[0]), stos(params_from_file[0])};
+      stos(params_from_file[10]), stos(params_from_file[11]), stos(params_from_file[12]), stos(params_from_file[13]),
+      stos(params_from_file[14]), stos(params_from_file[15]), stos(params_from_file[16]), stos(params_from_file[17]),
+      stos(params_from_file[18]), stos(params_from_file[19]), stos(params_from_file[20]), stos(params_from_file[21]),
+      stos(params_from_file[22]), stos(params_from_file[23]), stos(params_from_file[24])};
 
   m_params.doZ0Cut_=doZ0Cut_;
   m_params.CAThetaCutBarrel_=CAThetaCutBarrel_;
@@ -200,7 +202,11 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
   m_params.hardCurvCut_=hardCurvCut_;
   m_params.dcaCutInnerTriplet_=dcaCutInnerTriplet_;
   m_params.dcaCutOuterTriplet_=dcaCutOuterTriplet_;
-  m_params.phiCuts_=phiCuts;
+
+  m_params.phiCuts_= std::make_unique<int16_t[]>(19);
+  for (int i = 0; i < 19; i++) {
+    m_params.phiCuts_[i] = phiCuts[i];
+  }
 
 
 #ifdef DUMP_GPU_TK_TUPLES

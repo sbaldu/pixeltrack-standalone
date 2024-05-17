@@ -84,7 +84,7 @@ namespace cAHitNtupletGenerator {
            float dcaCutInnerTriplet,
            float dcaCutOuterTriplet,
            QualityCuts const& cuts,
-           int16_t* phiCuts)
+           std::shared_ptr<int16_t[]> phiCuts)
         : onGPU_(onGPU),
           minHitsPerNtuplet_(minHitsPerNtuplet),
           maxNumberOfDoublets_(maxNumberOfDoublets),
@@ -145,7 +145,7 @@ namespace cAHitNtupletGenerator {
                           0.3,  // pT > 0.3 GeV
                           12.0  // |Zip| < 12.0 cm
                       }};
-    int16_t* phiCuts_;
+    std::shared_ptr<int16_t[]> phiCuts_;
   };  // Params
 
 }  // namespace cAHitNtupletGenerator
