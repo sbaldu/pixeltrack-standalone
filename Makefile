@@ -36,11 +36,11 @@ HOST_CXXFLAGS := -O2 -fPIC -fdiagnostics-show-option -felide-constructors -fmess
 # LLVM_UNSUPPORTED_CXXFLAGS := --param vect-max-version-for-alias-checks=50 -Werror=format-contains-nul -Wno-non-template-friend -Werror=return-local-addr -Werror=unused-but-set-variable
 LLVM_UNSUPPORTED_CXXFLAGS := --param vect-max-version-for-alias-checks=50 -Werror=format-contains-nul -Wno-non-template-friend -Werror=return-local-addr
 
-# export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS) -fsanitize=address -O0 -g
-export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS)
+export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS) -fsanitize=address -O0 -g
+# export CXXFLAGS := -std=c++17 $(HOST_CXXFLAGS) $(USER_CXXFLAGS)
 export NVCXX_CXXFLAGS := -std=c++20 -O0 -cuda -gpu=managed -stdpar -fpic -gopt $(USER_CXXFLAGS)
-# export LDFLAGS := -O2 -fPIC -pthread -Wl,-E -lstdc++fs -ldl -fsanitize=address
-export LDFLAGS := -O2 -fPIC -pthread -Wl,-E -lstdc++fs -ldl
+export LDFLAGS := -O2 -fPIC -pthread -Wl,-E -lstdc++fs -ldl -fsanitize=address
+# export LDFLAGS := -O2 -fPIC -pthread -Wl,-E -lstdc++fs -ldl
 export LDFLAGS_NVCC := -ccbin $(CXX) --linker-options '-E' --linker-options '-lstdc++fs'
 export LDFLAGS_NVCXX := -cuda -Wl,-E -ldl -gpu=managed -stdpar
 export SO_LDFLAGS := -Wl,-z,defs

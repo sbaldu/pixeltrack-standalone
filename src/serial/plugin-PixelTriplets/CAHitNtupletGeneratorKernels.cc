@@ -108,10 +108,10 @@ void CAHitNtupletGeneratorKernelsCPU::launchKernels(HitsOnCPU const &hh, TkSoA *
                  m_params.dcaCutInnerTriplet_,
                  m_params.dcaCutOuterTriplet_);
 
-  // if (nhits > 1 && m_params.earlyFishbone_) {
-  //   gpuPixelDoublets::fishbone(
-  //       hh.view(), device_theCells_.get(), device_nCells_, device_isOuterHitOfCell_.get(), nhits, false);
-  // }
+  if (nhits > 1 && m_params.earlyFishbone_) {
+    gpuPixelDoublets::fishbone(
+        hh.view(), device_theCells_.get(), device_nCells_, device_isOuterHitOfCell_.get(), nhits, false);
+  }
 
   kernel_find_ntuplets(hh.view(),
                        device_theCells_.get(),
@@ -127,16 +127,16 @@ void CAHitNtupletGeneratorKernelsCPU::launchKernels(HitsOnCPU const &hh, TkSoA *
   cms::cuda::finalizeBulk(device_hitTuple_apc_, tuples_d);
 
   // remove duplicates (tracks that share a doublet)
-  // kernel_earlyDuplicateRemover(device_theCells_.get(), device_nCells_, tuples_d, quality_d);
+  kernel_earlyDuplicateRemover(device_theCells_.get(), device_nCells_, tuples_d, quality_d);
 
   kernel_countMultiplicity(tuples_d, quality_d, device_tupleMultiplicity_.get());
-  // cms::cuda::launchFinalize(device_tupleMultiplicity_.get());
-  // kernel_fillMultiplicity(tuples_d, quality_d, device_tupleMultiplicity_.get());
+  cms::cuda::launchFinalize(device_tupleMultiplicity_.get());
+  kernel_fillMultiplicity(tuples_d, quality_d, device_tupleMultiplicity_.get());
 
-  // if (nhits > 1 && m_params.lateFishbone_) {
-  //   gpuPixelDoublets::fishbone(
-  //       hh.view(), device_theCells_.get(), device_nCells_, device_isOuterHitOfCell_.get(), nhits, true);
-  // }
+  if (nhits > 1 && m_params.lateFishbone_) {
+    gpuPixelDoublets::fishbone(
+        hh.view(), device_theCells_.get(), device_nCells_, device_isOuterHitOfCell_.get(), nhits, true);
+  }
 
   /* if (m_params.doStats_) { */
   /*   kernel_checkOverflows(tuples_d, */
@@ -161,10 +161,10 @@ void CAHitNtupletGeneratorKernelsCPU::classifyTuples(HitsOnCPU const &hh, TkSoA 
   // classify tracks based on kinematics
   kernel_classifyTracks(tuples_d, tracks_d, m_params.cuts_, quality_d);
 
-  /* if (m_params.lateFishbone_) { */
-  /*   // apply fishbone cleaning to good tracks */
-  /*   kernel_fishboneCleaner(device_theCells_.get(), device_nCells_, quality_d); */
-  /* } */
+   if (m_params.lateFishbone_) { 
+     // apply fishbone cleaning to good tracks
+     kernel_fishboneCleaner(device_theCells_.get(), device_nCells_, quality_d);
+   } 
 
   // remove duplicates (tracks that share a doublet)
   kernel_fastDuplicateRemover(device_theCells_.get(), device_nCells_, tuples_d, tracks_d);

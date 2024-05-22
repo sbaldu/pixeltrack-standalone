@@ -224,8 +224,11 @@ def readHistograms(files):
     return histos
 
 histoData = readHistograms(glob.glob("histograms_*.txt"))
-makePlots(histoData, ["cuda", "kokkos_cuda"], log=True)
-makeRatioPlots(histoData, "cuda", ["kokkos_cuda"], ylim=dict())
+# makePlots(histoData, ["cuda", "kokkos_cuda"], log=True)
+# makeRatioPlots(histoData, "cuda", ["kokkos_cuda"], ylim=dict())
+
+makePlots(histoData, ["serial"], log=True)
+# makeRatioPlots(histoData, "cuda", ["kokkos_cuda"], ylim=dict())
 
 #makeManyRatioPlots(histoData, "cuda", dict(
 #    cuda = ["cuda_{}".format(i) for i in range(0,100)],

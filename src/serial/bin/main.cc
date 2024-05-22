@@ -73,8 +73,8 @@ int main(int argc, char** argv) {
     } else if (*i == "--data") {
       ++i;
       datadir = *i;
-    } else if (*i == "--validation") {
-      validation = true;
+    // } else if (*i == "--validation") {
+    //   validation = true;
     } else if (*i == "--histogram") {
       histogram = true;
     } else if (*i == "--objective") {
@@ -124,11 +124,11 @@ int main(int argc, char** argv) {
     } else {
       edmodules.emplace_back("CAHitNtupletCUDA");
     }
-    if (validation) {
-      edmodules.emplace_back("CountValidator");
-    }
+    // if (validation) {
+    //   edmodules.emplace_back("CountValidator");
+    // }
     if (histogram) {
-      edmodules.emplace_back("HistoValidator");
+      edmodules.emplace_back("TrackMLHistoValidator");
     }
     if (objective) {
       edmodules.emplace_back("ObjectiveProducer");

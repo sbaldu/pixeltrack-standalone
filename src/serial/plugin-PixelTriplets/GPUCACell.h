@@ -32,7 +32,7 @@ public:
   using Hits = TrackingRecHit2DSOAView;
   using hindex_type = Hits::hindex_type;
 
-  using TmpTuple = cms::cuda::VecArray<uint32_t, 6>;
+  using TmpTuple = cms::cuda::VecArray<uint32_t, 8>;
 
   using HitContainer = pixelTrack::HitContainer;
   using Quality = trackQuality::Quality;
@@ -293,7 +293,6 @@ public:
 
     tmpNtuplet.push_back_unsafe(theDoubletId);
     assert(tmpNtuplet.size() <= 4);
-
     bool last = true;
     for (int j = 0; j < outerNeighbors().size(); ++j) {
       auto otherCell = outerNeighbors()[j];

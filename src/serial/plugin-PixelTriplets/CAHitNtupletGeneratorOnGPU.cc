@@ -99,13 +99,13 @@ namespace {
 using namespace std;
 CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg)
     : m_params(false,              // onGPU
-               3,                  // minHitsPerNtuplet,
-               458752,             // maxNumberOfDoublets
+               4,                  // minHitsPerNtuplet,
+               45875200,             // maxNumberOfDoublets
                false,              //useRiemannFit
                true,               // fit5as4,
                true,               //includeJumpingForwardDoublets
                true,               // earlyFishbone
-               false,              // lateFishbone
+               true,              // lateFishbone
                true,               // idealConditions
                false,              //fillStatistics
                true,               // doClusterCut
@@ -145,13 +145,13 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
 
 CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg, const std::string& filename)
     : m_params(false,              // onGPU
-               3,                  // minHitsPerNtuplet,
-               458752,             // maxNumberOfDoublets
+               4,                  // minHitsPerNtuplet,
+               45875200,             // maxNumberOfDoublets
                false,              //useRiemannFit
                true,               // fit5as4,
                true,               //includeJumpingForwardDoublets
                true,               // earlyFishbone
-               false,              // lateFishbone
+               true,              // lateFishbone
                true,               // idealConditions
                false,              //fillStatistics
                true,               // doClusterCut
@@ -254,6 +254,19 @@ PixelTrackHeterogeneous CAHitNtupletGeneratorOnGPU::makeTuples(
   kernels.launchKernels(hits_d, soa, nullptr);
   kernels.fillHitDetIndices(
       hits_d.view(), soa, nullptr);  // in principle needed only if Hits not "available"
+
+  if (0 == hits_d.nHits())
+    return tracks;
+
+  // now fit
+  HelixFitOnGPU fitter(bfield, m_params.fit5as4_);
+  fitter.allocateOnGPU(&(soa->hitIndices), kernels.tupleMultiplicity(), soa);
+
+ 
+    fitter.launchBrokenLineKernelsOnCPU(hits_d.view(), hits_d.nHits(), CAConstants::maxNumberOfQuadruplets());
+  
+
+  kernels.classifyTuples(hits_d, soa, nullptr);
 
   return tracks;
 }

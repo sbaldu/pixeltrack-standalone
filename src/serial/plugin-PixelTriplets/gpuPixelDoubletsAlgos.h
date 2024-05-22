@@ -69,7 +69,6 @@ namespace gpuPixelDoublets {
       innerLayerCumulativeSize[i] = innerLayerCumulativeSize[i - 1] + layerSize(layerPairs[2 * i]);
     }
     ntot = innerLayerCumulativeSize[nPairs - 1];
-
     // x runs faster
     auto idy = 0;
     uint32_t first = 0;
@@ -80,7 +79,6 @@ namespace gpuPixelDoublets {
       while (j >= innerLayerCumulativeSize[pairLayerId++])
         ;
       --pairLayerId;  // move to lower_bound ??
-
       assert(pairLayerId < nPairs);
       assert(j < innerLayerCumulativeSize[pairLayerId]);
       assert(0 == pairLayerId || j >= innerLayerCumulativeSize[pairLayerId - 1]);
