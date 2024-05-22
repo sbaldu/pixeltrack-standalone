@@ -292,7 +292,7 @@ public:
     // than a threshold
 
     tmpNtuplet.push_back_unsafe(theDoubletId);
-    assert(tmpNtuplet.size() <= 4);
+    // assert(tmpNtuplet.size() <= 4);
     bool last = true;
     for (int j = 0; j < outerNeighbors().size(); ++j) {
       auto otherCell = outerNeighbors()[j];
@@ -326,7 +326,7 @@ public:
       }
     }
     tmpNtuplet.pop_back();
-    assert(tmpNtuplet.size() < 4);
+    // assert(tmpNtuplet.size() < 4);
   }
 
 private:

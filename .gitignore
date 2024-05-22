@@ -34,3 +34,4 @@ Manifest.toml
 /sycltest
 /optimization
 *.txt
+*.png

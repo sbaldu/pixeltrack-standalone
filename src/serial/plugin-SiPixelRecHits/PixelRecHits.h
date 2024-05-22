@@ -38,7 +38,7 @@ namespace pixelgpudetails {
       HitsCoordsSoA hits;
       uint32_t nHits{};
 
-      std::ifstream iFile("data/track-ml/hits_1000.csv");
+      std::ifstream iFile("data/track-ml/hits_1.csv");
       if (!iFile.is_open()) {
         std::cerr << "Error opening file" << std::endl;
       }
@@ -70,7 +70,7 @@ namespace pixelgpudetails {
         ++nHits;
       }
 
-      std::ifstream iFileTruth("data/track-ml/truth_1000.csv");
+      std::ifstream iFileTruth("data/track-ml/truth_1.csv");
       if (!iFileTruth.is_open()) {
         std::cerr << "Error opening file" << std::endl;
       }
@@ -89,15 +89,34 @@ namespace pixelgpudetails {
 
       
 
+      std::vector<std::size_t> indexes(hits.global_indexes.size());
+      std::iota(indexes.begin(), indexes.end(), 0);
+      std::sort(indexes.begin(), indexes.end(), [&hits](std::size_t i1, std::size_t i2) {
+        return hits.global_indexes[i1] < hits.global_indexes[i2];
+      });
+      //sort hits.x, hits.y, hits.z, hits.r, hits.phi, hits.global_indexes, hits.particle_indexes, hits.particle_pTs by hits.global_indexes
+      HitsCoordsSoA hits_sorted;
+      for (size_t i{0}; i < hits.global_indexes.size(); ++i) {
+        hits_sorted.x.push_back(hits.x[indexes[i]]);
+        hits_sorted.y.push_back(hits.y[indexes[i]]);
+        hits_sorted.z.push_back(hits.z[indexes[i]]);
+        hits_sorted.r.push_back(hits.r[indexes[i]]);
+        hits_sorted.phi.push_back(hits.phi[indexes[i]]);
+        hits_sorted.global_indexes.push_back(hits.global_indexes[indexes[i]]);
+        hits_sorted.particle_indexes.push_back(hits.particle_indexes[indexes[i]]);
+        hits_sorted.particle_pTs.push_back(hits.particle_pTs[indexes[i]]);
+      }
       std::vector<uint32_t> layerStart_ = {0};
-      for (size_t j{1}; j < hits.global_indexes.size() - 1; ++j) {
-        if (hits.global_indexes[j + 1] != hits.global_indexes[j]) {
+      for (size_t j{1}; j < hits_sorted.global_indexes.size() - 1; ++j) {
+        if (hits_sorted.global_indexes[j + 1] != hits_sorted.global_indexes[j]) {
           layerStart_.push_back(j + 1);
         }
       }
-
-      hits.reset();  // reset the view
-      TrackingRecHit2DCPU hits_d(nHits, std::move(hits), std::move(layerStart_), nullptr);
+      std::cout << "Number of hits: " << nHits << std::endl;
+      std::cout << "Number of layers: " << layerStart_.size() << std::endl;
+      // hits.reset();  // reset the view
+      hits_sorted.reset();  // reset the view
+      TrackingRecHit2DCPU hits_d(nHits, std::move(hits_sorted), std::move(layerStart_), nullptr);
       return hits_d;
     }
   };

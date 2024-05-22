@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <limits>
+#include <map>
 
 #include "CUDADataFormats/TrackingRecHit2DCUDA.h"
 #include "DataFormats/approx_atan2.h"
@@ -75,6 +76,8 @@ namespace gpuPixelDoublets {
     auto stride = 1;
 
     uint32_t pairLayerId = 0;  // cannot go backward
+    int lastInd = 0;
+    std::map <std::tuple<int, int, int, int, int>, int> countPairLayerIds{};
     for (uint32_t j = idy; j < ntot; j += 1) {
       while (j >= innerLayerCumulativeSize[pairLayerId++])
         ;
@@ -114,13 +117,13 @@ namespace gpuPixelDoublets {
       /*   continue; */
 
       int16_t mes = -1;  // make compiler happy
-	  auto doClusterCut = false;
+	    auto doClusterCut = false;
       if (doClusterCut) {
         // if ideal treat inner ladder as outer
         /* if (inner == 0) */
         /*   assert(mi < 96); */
         /* isOuterLadder = ideal_cond ? true : 0 == (mi / 8) % 2;  // only for B1/B2/B3 B4 is opposite, FPIX:noclue... */
-		isOuterLadder = true;
+		  isOuterLadder = true;
 
         // in any case we always test mes>0 ...
         /* mes = inner > 0 || isOuterLadder ? hh.clusterSizeY(i) : -1; */
@@ -222,20 +225,33 @@ namespace gpuPixelDoublets {
             break;
           }  // move to SimpleVector??
           // int layerPairId, int doubletId, int innerHitId, int outerHitId)
+          auto innerHitLayer = hh.detectorIndex(i);
+          auto outerHitLayer = hh.detectorIndex(oi);
+
+          countPairLayerIds[std::make_tuple(pairLayerId, innerHitLayer, outerHitLayer, inner, outer)]++;
+
           cells[ind].init(*cellNeighbors, *cellTracks, hh, pairLayerId, ind, i, oi);
           isOuterHitOfCell[oi].push_back(ind);
+
 #ifdef GPU_DEBUG
           if (isOuterHitOfCell[oi].full())
             ++tooMany;
           ++tot;
 #endif
         }
+
       }
 #ifdef GPU_DEBUG
       if (tooMany > 0)
         printf("OuterHitOfCell full for %d in layer %d/%d, %d,%d %d\n", i, inner, outer, nmin, tot, tooMany);
 #endif
     }  // loop in block...
+
+    // print map
+    for (auto const& [key, val] : countPairLayerIds) {
+      printf("pairLayerIds: %d\thitDetId:(%d, %d)\tInner,Outer:(%d, %d)\tcount: %d\n", std::get<0>(key),std::get<1>(key),std::get<2>(key),std::get<3>(key),std::get<4>(key),  val);
+    }
+
   }
 
 }  // namespace gpuPixelDoublets
