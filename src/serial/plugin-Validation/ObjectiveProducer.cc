@@ -82,6 +82,8 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     auto quality = soa->quality(i);
     if (quality == trackQuality::bad)
       continue;
+    auto chi2 = soa->chi2(i);
+    // std::cout << "chi2: " << chi2 << std::endl;
     auto particle = hits->particleIndex(indeces.at(offset));
     auto pt = hits->particlePT(indeces.at(offset));
     for (int j = 1; j < nHits; ++j){
@@ -107,10 +109,10 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
   
-  // print the hitsPerLayer map
-  for (auto const& elem : hitsPerLayer) {
-    std::cout << elem.first << " " << elem.second << "\n";
-  }
+  // // print the hitsPerLayer map
+  // for (auto const& elem : hitsPerLayer) {
+  //   std::cout << elem.first << " " << elem.second << "\n";
+  // }
 
   // for (auto const& elem : recos) {
   //   if (elem.second > 1){

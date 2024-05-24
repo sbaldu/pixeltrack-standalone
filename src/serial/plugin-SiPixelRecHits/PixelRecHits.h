@@ -38,7 +38,9 @@ namespace pixelgpudetails {
       HitsCoordsSoA hits;
       uint32_t nHits{};
 
-      std::ifstream iFile("data/track-ml/hits_1.csv");
+      std::ifstream iFile("data/track-ml/hits_1000.csv");
+      // std::ifstream iFile("data/track-ml/hits_high_eta.csv");
+      // std::ifstream iFile("data/track-ml/hits_1000.csv");
       if (!iFile.is_open()) {
         std::cerr << "Error opening file" << std::endl;
       }
@@ -51,13 +53,13 @@ namespace pixelgpudetails {
         std::string temp;
 
         getline(fileStream, temp, ',');
-        float x{std::stof(temp)};
+        float x{std::stof(temp)*0.1f};
         hits.x.push_back(x);
         getline(fileStream, temp, ',');
-        float y{std::stof(temp)};
+        float y{std::stof(temp)*0.1f};
         hits.y.push_back(y);
         getline(fileStream, temp, ',');
-        hits.z.push_back(std::stof(temp));
+        hits.z.push_back(std::stof(temp)*0.1f);
 
         hits.r.push_back(std::sqrt(x * x + y * y));
 
@@ -70,7 +72,9 @@ namespace pixelgpudetails {
         ++nHits;
       }
 
-      std::ifstream iFileTruth("data/track-ml/truth_1.csv");
+      std::ifstream iFileTruth("data/track-ml/truth_1000.csv");
+      // std::ifstream iFileTruth("data/track-ml/truth_1000.csv");
+      // std::ifstream iFileTruth("data/track-ml/truth_high_eta.csv");
       if (!iFileTruth.is_open()) {
         std::cerr << "Error opening file" << std::endl;
       }
@@ -106,14 +110,31 @@ namespace pixelgpudetails {
         hits_sorted.particle_indexes.push_back(hits.particle_indexes[indexes[i]]);
         hits_sorted.particle_pTs.push_back(hits.particle_pTs[indexes[i]]);
       }
+      auto currentLayerIndex = 0;
+      auto lastLayerIndex = 0;
       std::vector<uint32_t> layerStart_ = {0};
-      for (size_t j{1}; j < hits_sorted.global_indexes.size() - 1; ++j) {
+      for (size_t j{0}; j < hits_sorted.global_indexes.size() - 1; ++j) {
         if (hits_sorted.global_indexes[j + 1] != hits_sorted.global_indexes[j]) {
+          currentLayerIndex=hits_sorted.global_indexes[j]+1;
           layerStart_.push_back(j + 1);
+          while (currentLayerIndex < hits_sorted.global_indexes[j + 1]) {
+            currentLayerIndex++;
+            layerStart_.push_back(j + 1);
+            lastLayerIndex = j + 1;
+          }
         }
       }
-      std::cout << "Number of hits: " << nHits << std::endl;
-      std::cout << "Number of layers: " << layerStart_.size() << std::endl;
+      
+      std::cout << "nHits"<< nHits << std::endl;
+      
+
+      for (auto & l_off: layerStart_){
+        std::cout << "Layer offset: " << l_off << std::endl;
+      }
+      // for(auto & r: hits_sorted.r)
+      // {
+      //   std::cout << "Hit r: " << r << std::endl;
+      // }
       // hits.reset();  // reset the view
       hits_sorted.reset();  // reset the view
       TrackingRecHit2DCPU hits_d(nHits, std::move(hits_sorted), std::move(layerStart_), nullptr);

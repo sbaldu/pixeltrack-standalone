@@ -165,12 +165,28 @@ TrackingRecHit2DHeterogeneous<Traits>::TrackingRecHit2DHeterogeneous(
   view->m_pPT = m_hits.particle_pTs.data();
   m_iphi = view->m_iphi = m_hits.phi.data();
 
+  auto offSize = layerStart.size();
+  
+  // print layerStart
+  for (size_t i =0; i< offSize; ++i){
+    std::cout << "layerStart "<<i<< ": "<< layerStart[i]<<std::endl;
+  }
+  
   m_layerStart = std::move(layerStart);
+
+
 
   m_hitsLayerStart = m_layerStart.data();
   view->m_hitsLayerStart = m_layerStart.data();
 
-  cms::cuda::fillManyFromVector(view->m_hist, 10, view->m_iphi, view->m_hitsLayerStart, nHits);
+
+
+  cms::cuda::fillManyFromVector(view->m_hist, offSize-1, view->m_iphi, view->m_hitsLayerStart, nHits);
+
+
+    for (size_t i =0; i< m_hist->nbins(); ++i){
+    std::cout << "m_hist bin "<<i<< ": "<< m_hist->bin(i)<<std::endl;
+  }
   m_view.reset(view.release());
 }
 

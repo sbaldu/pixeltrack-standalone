@@ -48,6 +48,10 @@ namespace gpuPixelDoublets {
 
     bool isOuterLadder = ideal_cond;
 
+    // for (size_t i = 0; i<hh.nHits(); ++i){
+    //   std::cout << "hit " << i << " phi: " << hh.iphi(i) << " r: " << hh.rGlobal(i) << " z: " << hh.zGlobal(i) << " layer: " << hh.detectorIndex(i) << std::endl;
+    // }
+
     using Hist = TrackingRecHit2DSOAView::Hist;
 
     auto const& __restrict__ hist = hh.phiBinner();
@@ -66,10 +70,13 @@ namespace gpuPixelDoublets {
     uint32_t ntot;
 
     innerLayerCumulativeSize[0] = layerSize(layerPairs[0]);
+
     for (uint32_t i = 1; i < nPairs; ++i) {
       innerLayerCumulativeSize[i] = innerLayerCumulativeSize[i - 1] + layerSize(layerPairs[2 * i]);
     }
     ntot = innerLayerCumulativeSize[nPairs - 1];
+
+
     // x runs faster
     auto idy = 0;
     uint32_t first = 0;

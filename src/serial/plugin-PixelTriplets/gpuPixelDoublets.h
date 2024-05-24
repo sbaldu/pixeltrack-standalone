@@ -6,7 +6,7 @@
 
 namespace gpuPixelDoublets {
 
-  constexpr int nPairs = 17;
+  constexpr int nPairs = 21;
   static_assert(nPairs <= CAConstants::maxNumberOfLayerPairs());
 
   // start constants
@@ -16,6 +16,7 @@ namespace gpuPixelDoublets {
   constexpr uint8_t layerPairs[2 * nPairs] = {
     0, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10,				// barrel to left disk layers
     0, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17,	// barrel to right disk layers
+    1,4,2,4,1,11,2,11,
     0, 1, 1, 2, 2, 3										// barrel to barrel                                
   };
 
