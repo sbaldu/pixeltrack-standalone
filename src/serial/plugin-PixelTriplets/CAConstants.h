@@ -43,6 +43,8 @@ namespace CAConstants {
   constexpr uint32_t maxNumberOfLayers() { return 18; }
   constexpr uint32_t maxTuples() { return maxNumberOfTuples(); }
 
+  constexpr uint32_t maxNumberOfHits() {return 15;}
+
   // types
   using hindex_type = uint16_t;  // FIXME from siPixelRecHitsHeterogeneousProduct
   using tindex_type = uint16_t;  //  for tuples
@@ -62,7 +64,7 @@ namespace CAConstants {
   using TuplesContainer = cms::cuda::OneToManyAssoc<hindex_type, maxTuples(), 5 * maxTuples()>;
   using HitToTuple =
       cms::cuda::OneToManyAssoc<tindex_type, pixelGPUConstants::maxNumberOfHits, 4 * maxTuples()>;  // 3.5 should be enough
-  using TupleMultiplicity = cms::cuda::OneToManyAssoc<tindex_type, 8, maxTuples()>;
+  using TupleMultiplicity = cms::cuda::OneToManyAssoc<tindex_type, maxNumberOfHits(), maxTuples()>;
 
 }  // namespace CAConstants
 

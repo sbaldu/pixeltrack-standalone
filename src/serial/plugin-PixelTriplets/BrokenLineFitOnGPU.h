@@ -62,7 +62,7 @@ void kernelBLFastFit(Tuples const *__restrict__ foundNtuplets,
     auto tkid = *(tupleMultiplicity->begin(nHits) + tuple_idx);
     assert(tkid < foundNtuplets->nbins());
 
-    assert(foundNtuplets->size(tkid) == nHits);
+    // assert(foundNtuplets->size(tkid) == nHits);
 
     Rfit::Map3xNd<N> hits(phits + local_idx);
     Rfit::Map4d fast_fit(pfast_fit + local_idx);

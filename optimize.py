@@ -4,18 +4,18 @@ import os
 import subprocess
 from matplotlib import pyplot as plt
 
-num_agents = 5
-num_iterations = 10
+num_agents = 10
+num_iterations = 20
 
 _this_iteration = 0
 
-lb = [0.0000001, 0.0000001, 0.0000001, 0.0000001, 1.0 / 3.8 / 0.9, 5.0, False, 400, 
+lb = [0.0, 0.0, 0.0, 0.0, 1.0 / 3.8 / 0.9, 5.0, 0, 400, 
         400, 400, 400, 400, 400, 400, 400, 400, 400, 
-        400, 400, 400, 400, 400, 400, 400, 400, 400]
+        400, 400, 400, 400, 400, 400, 400, 400]
 
-ub = [0.006, 0.03, 0.2, 1.0, 1.0 / 3.8 / 0.3, 20.0, True, 1000,
+ub = [0.006, 0.03, 0.2, 1.0, 1.0 / 3.8 / 0.3, 20.0, 1, 1000,
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 
-        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
+        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
 
 optimizer.Logger.setLevel('INFO')
 
@@ -71,7 +71,7 @@ optimizer.Randomizer.rng = np.random.default_rng(42)
 
 optimizer.FileManager.working_dir = "optimization/"
 optimizer.FileManager.loading_enabled = False
-optimizer.FileManager.saving_enabled = True
+optimizer.FileManager.saving_enabled = False
 
 objective = optimizer.ElementWiseObjective([pixeltrack], 2)
 

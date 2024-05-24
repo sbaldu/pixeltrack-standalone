@@ -314,9 +314,9 @@ void kernel_countMultiplicity(HitContainer const *__restrict__ foundNtuplets,
     if (quality[it] == trackQuality::dup)
       continue;
     /* assert(quality[it] == trackQuality::bad); */
-    if (nhits > 5)
-      printf("wrong mult %d %d\n", it, nhits);
-    assert(nhits < 8);
+    // if (nhits > 5)
+    //   printf("wrong mult %d %d\n", it, nhits);
+    assert(nhits < CAConstants::maxNumberOfHits());
     tupleMultiplicity->countDirect(nhits);
   }
 }
@@ -332,9 +332,9 @@ void kernel_fillMultiplicity(HitContainer const *__restrict__ foundNtuplets,
     if (quality[it] == trackQuality::dup)
       continue;
     assert(quality[it] == trackQuality::bad);
-    if (nhits > 5)
-      printf("wrong mult %d %d\n", it, nhits);
-    assert(nhits < 8);
+    // if (nhits > 5)
+    //   printf("wrong mult %d %d\n", it, nhits);
+    assert(nhits < CAConstants::maxNumberOfHits());
     tupleMultiplicity->fillDirect(nhits, it);
   }
 }

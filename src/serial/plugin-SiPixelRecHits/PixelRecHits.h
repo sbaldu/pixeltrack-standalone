@@ -125,12 +125,12 @@ namespace pixelgpudetails {
         }
       }
       
-      std::cout << "nHits"<< nHits << std::endl;
+      // std::cout << "nHits"<< nHits << std::endl;
       
 
-      for (auto & l_off: layerStart_){
-        std::cout << "Layer offset: " << l_off << std::endl;
-      }
+      // for (auto & l_off: layerStart_){
+      //   std::cout << "Layer offset: " << l_off << std::endl;
+      // }
       // for(auto & r: hits_sorted.r)
       // {
       //   std::cout << "Hit r: " << r << std::endl;

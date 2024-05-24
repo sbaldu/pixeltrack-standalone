@@ -32,7 +32,7 @@ public:
   using Hits = TrackingRecHit2DSOAView;
   using hindex_type = Hits::hindex_type;
 
-  using TmpTuple = cms::cuda::VecArray<uint32_t, 8>;
+  using TmpTuple = cms::cuda::VecArray<uint32_t, 32>;
 
   using HitContainer = pixelTrack::HitContainer;
   using Quality = trackQuality::Quality;
@@ -291,7 +291,7 @@ public:
     // the ntuplets is then saved if the number of hits it contains is greater
     // than a threshold
 
-    tmpNtuplet.push_back_unsafe(theDoubletId);
+    tmpNtuplet.push_back(theDoubletId);
     // assert(tmpNtuplet.size() <= 4);
     bool last = true;
     for (int j = 0; j < outerNeighbors().size(); ++j) {
@@ -310,7 +310,7 @@ public:
             ((!startAt0) && hole0(hh, cells[tmpNtuplet[0]])))
 #endif
         {
-          hindex_type hits[6];
+          hindex_type hits[10];
           auto nh = 0U;
           for (auto c : tmpNtuplet) {
             hits[nh++] = cells[c].theInnerHitId;
@@ -318,8 +318,9 @@ public:
           hits[nh] = theOuterHitId;
           auto it = foundNtuplets.bulkFill(apc, hits, tmpNtuplet.size() + 1);
           if (it >= 0) {  // if negative is overflow....
-            for (auto c : tmpNtuplet)
+            for (auto c : tmpNtuplet) {
               cells[c].addTrack(it, cellTracks);
+            }
             quality[it] = bad;  // initialize to bad
           }
         }

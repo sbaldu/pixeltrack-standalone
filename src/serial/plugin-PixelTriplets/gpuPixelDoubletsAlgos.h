@@ -255,9 +255,9 @@ namespace gpuPixelDoublets {
     }  // loop in block...
 
     // print map
-    for (auto const& [key, val] : countPairLayerIds) {
-      printf("pairLayerIds: %d\thitDetId:(%d, %d)\tInner,Outer:(%d, %d)\tcount: %d\n", std::get<0>(key),std::get<1>(key),std::get<2>(key),std::get<3>(key),std::get<4>(key),  val);
-    }
+    // for (auto const& [key, val] : countPairLayerIds) {
+    //   printf("pairLayerIds: %d\thitDetId:(%d, %d)\tInner,Outer:(%d, %d)\tcount: %d\n", std::get<0>(key),std::get<1>(key),std::get<2>(key),std::get<3>(key),std::get<4>(key),  val);
+    // }
 
   }
 
