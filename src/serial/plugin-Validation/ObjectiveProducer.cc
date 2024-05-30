@@ -120,24 +120,20 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     ++result["reconstructed"];
   }
 
-  std::pair <float, float> pT_minmax = {INFINITY,0.};
-  std::pair <float, float> dR_minmax = {INFINITY,0.};
-  std::pair <float, float> vz_minmax = {INFINITY,0.};
-  std::pair <uint16_t, uint16_t> nHits_minmax = {INFINITY,0};
-  std::ofstream out("simulated.csv");
-  out << "index, pT, dR, vz, nHits\n";
-  for (auto & sim: uniques){
-      auto pInd = sim.first;
-      auto pT = std::get<0>(sim.second);
-      auto dR = std::get<1>(sim.second);
-      auto vz = std::get<2>(sim.second);
-      auto nHits = std::get<3>(sim.second);
-      out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
-   }
-  out.close();
+  // std::ofstream out("simulated.csv");
+  // out << "index, pT, dR, vz, nHits\n";
+  // for (auto & sim: uniques){
+  //     auto pInd = sim.first;
+  //     auto pT = std::get<0>(sim.second);
+  //     auto dR = std::get<1>(sim.second);
+  //     auto vz = std::get<2>(sim.second);
+  //     auto nHits = std::get<3>(sim.second);
+  //     out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
+  //  }
+  // out.close();
 
-  out.open("simtoreco.csv");
-  out << "index, pT, dR, vz, nHits\n";
+  // out.open("simtoreco.csv");
+  // out << "index, pT, dR, vz, nHits\n";
   for (auto & sim: uniques){
     auto pInd = sim.first;
     auto pT = std::get<0>(sim.second);
@@ -146,7 +142,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     auto nHits = std::get<3>(sim.second);
     bool found_simtoreco = recos.find(sim.first) != recos.end();
     if (found_simtoreco) {
-      out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
+      // out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
       ++result["simtoreco"];
     }
   }
