@@ -38,7 +38,7 @@ namespace pixelgpudetails {
       HitsCoordsSoA hits;
       uint32_t nHits{};
 
-      std::ifstream iFile("data/track-ml/hits_1000.csv");
+      std::ifstream iFile("data/track-ml/trackml_1000.csv");
       // std::ifstream iFile("data/track-ml/hits_high_eta.csv");
       // std::ifstream iFile("data/track-ml/hits_1000.csv");
       if (!iFile.is_open()) {
@@ -53,42 +53,30 @@ namespace pixelgpudetails {
         std::string temp;
 
         getline(fileStream, temp, ',');
-        float x{std::stof(temp)*0.1f};
+        float x{std::stof(temp)};
         hits.x.push_back(x);
         getline(fileStream, temp, ',');
-        float y{std::stof(temp)*0.1f};
+        float y{std::stof(temp)};
         hits.y.push_back(y);
         getline(fileStream, temp, ',');
-        hits.z.push_back(std::stof(temp)*0.1f);
-
+        hits.z.push_back(std::stof(temp));
         hits.r.push_back(std::sqrt(x * x + y * y));
-
         int16_t phi{phi2short(std::atan(y / x))};
         hits.phi.push_back(phi);
-
-        getline(fileStream, temp, ',');
-        hits.global_indexes.push_back(std::stoi(temp));
-
-        ++nHits;
-      }
-
-      std::ifstream iFileTruth("data/track-ml/truth_1000.csv");
-      // std::ifstream iFileTruth("data/track-ml/truth_1000.csv");
-      // std::ifstream iFileTruth("data/track-ml/truth_high_eta.csv");
-      if (!iFileTruth.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-      }
-
-      // TODO: maybe add a bit of error handling in the header
-      getline(iFileTruth, line);
-      while (getline(iFileTruth, line)) {
-        std::stringstream fileStream(line);
-        std::string temp;
-
         getline(fileStream, temp, ',');
         hits.particle_indexes.push_back(std::stol(temp));
         getline(fileStream, temp, ',');
+        hits.particle_Vzs.push_back(std::stof(temp));
+        getline(fileStream, temp, ',');
+        getline(fileStream, temp, ',');
+        hits.global_indexes.push_back(std::stoi(temp));
+        getline(fileStream, temp, ',');
         hits.particle_pTs.push_back(std::stof(temp));
+        getline(fileStream, temp, ',');
+        hits.particle_dRs.push_back(std::stof(temp));
+        getline(fileStream, temp, ',');
+        hits.particle_nHits.push_back(std::stoi(temp));
+        ++nHits;
       }
 
       
@@ -109,6 +97,9 @@ namespace pixelgpudetails {
         hits_sorted.global_indexes.push_back(hits.global_indexes[indexes[i]]);
         hits_sorted.particle_indexes.push_back(hits.particle_indexes[indexes[i]]);
         hits_sorted.particle_pTs.push_back(hits.particle_pTs[indexes[i]]);
+        hits_sorted.particle_dRs.push_back(hits.particle_dRs[indexes[i]]);
+        hits_sorted.particle_Vzs.push_back(hits.particle_Vzs[indexes[i]]);
+        hits_sorted.particle_nHits.push_back(hits.particle_nHits[indexes[i]]);
       }
       auto currentLayerIndex = 0;
       auto lastLayerIndex = 0;

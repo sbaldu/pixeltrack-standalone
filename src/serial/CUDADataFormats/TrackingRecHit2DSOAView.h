@@ -65,6 +65,13 @@ public:
   inline int64_t particleIndex(int i) const { return m_pInd[i]; }
   inline float& particlePT(int i) { return m_pPT[i]; }
   inline float particlePT(int i) const { return m_pPT[i]; }
+  inline float& particledR(int i) { return m_pdR[i]; }
+  inline float particledR(int i) const { return m_pdR[i]; }
+  inline float& particleVz(int i) { return m_pVz[i]; }
+  inline float particleVz(int i) const { return m_pVz[i]; }
+  inline uint16_t& particleNHits(int i) { return m_pNHits[i]; }
+  inline uint16_t particleNHits(int i) const { return m_pNHits[i]; }
+
 
   inline pixelCPEforGPU::ParamsOnGPU const& cpeParams() const { return *m_cpeParams; }
 
@@ -101,6 +108,10 @@ private:
   // supporting objects
   int64_t* m_pInd;
   float* m_pPT;
+  float* m_pdR;
+  float* m_pVz;
+  uint16_t* m_pNHits;
+
 
   AverageGeometry*
       m_averageGeometry;  // owned (corrected for beam spot: not sure where to host it otherwise)

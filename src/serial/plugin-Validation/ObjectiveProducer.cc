@@ -55,14 +55,22 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   }
 
   // assert(indeces.size() > 0);
-  std::map<int, int> hitsPerLayer;
+  // std::map<int, int> hitsPerLayer;
 
 
 
-  std::set<int64_t> uniques;
+  std::map<int64_t, std::tuple<float, float, float, int>> uniques;
   for (size_t i = 0; i < nHits; ++i) {
-    if (hits->particlePT(i) > 0.899999976158)
-      uniques.insert(hits->particleIndex(i));
+    if (hits->particlePT(i) > 0.9 && hits->particleNHits(i) > 3){
+      auto pT = hits->particlePT(i);
+      auto dR = hits->particledR(i);
+      auto vz = hits->particleVz(i);
+      auto pnHits = hits->particleNHits(i);
+      auto index = hits->particleIndex(i);
+
+      auto values = std::make_tuple(pT, dR, vz, pnHits);
+      uniques.insert(std::make_pair(index, values));
+      }
   }
   result["simulated"] = uniques.size();
   
@@ -84,42 +92,64 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       continue;
     auto chi2 = soa->chi2(i);
     // std::cout << "chi2: " << chi2 << std::endl;
+    auto majorityIndex{indeces.at(offset)};
+    int count{1};
     auto particle = hits->particleIndex(indeces.at(offset));
-    auto pt = hits->particlePT(indeces.at(offset));
     for (int j = 1; j < nHits; ++j){
-      hitsPerLayer[hits->detectorIndex(indeces.at(offset))]++;
-      if (particle != hits->particleIndex(indeces.at(offset+j))){
+      // hitsPerLayer[hits->detectorIndex(indeces.at(offset+j))]++;
+      if (hits->particleIndex(indeces.at(offset+j)) != hits->particleIndex(majorityIndex)){
+        if (--count == 0){
+          majorityIndex = indeces.at(offset+j);
+          count = 1;
+        }
         continue;
       }
-      same++;
+      count++;
     }
+    for (int j = 0; j < nHits; ++j)
+      if (hits->particleIndex(indeces.at(offset+j)) == hits->particleIndex(majorityIndex))
+        ++same ;
+    particle = hits->particleIndex(majorityIndex);
     float threshold = same/nHits;
     if (threshold>=0.75 && particle != 0){
       if (recos.find(particle) == recos.end())
-        recos[particle] = 1;
-      recos[particle]++;      
+        recos[particle] = 0;
+      ++recos[particle];      
       ++result["recotosim"];
     }
     ++result["reconstructed"];
   }
 
+  std::pair <float, float> pT_minmax = {INFINITY,0.};
+  std::pair <float, float> dR_minmax = {INFINITY,0.};
+  std::pair <float, float> vz_minmax = {INFINITY,0.};
+  std::pair <uint16_t, uint16_t> nHits_minmax = {INFINITY,0};
+  std::ofstream out("simulated.csv");
+  out << "index, pT, dR, vz, nHits\n";
   for (auto & sim: uniques){
-    if (recos.find(sim) != recos.end()){
+      auto pInd = sim.first;
+      auto pT = std::get<0>(sim.second);
+      auto dR = std::get<1>(sim.second);
+      auto vz = std::get<2>(sim.second);
+      auto nHits = std::get<3>(sim.second);
+      out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
+   }
+  out.close();
+
+  out.open("simtoreco.csv");
+  out << "index, pT, dR, vz, nHits\n";
+  for (auto & sim: uniques){
+    auto pInd = sim.first;
+    auto pT = std::get<0>(sim.second);
+    auto dR = std::get<1>(sim.second);
+    auto vz = std::get<2>(sim.second);
+    auto nHits = std::get<3>(sim.second);
+    bool found_simtoreco = recos.find(sim.first) != recos.end();
+    if (found_simtoreco) {
+      out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
       ++result["simtoreco"];
     }
   }
-  
-  // // print the hitsPerLayer map
-  // for (auto const& elem : hitsPerLayer) {
-  //   std::cout << elem.first << " " << elem.second << "\n";
-  // }
-
-  // for (auto const& elem : recos) {
-  //   if (elem.second > 1){
-  //     std::cout << elem.first << " " << elem.second << "\n";
-  //   }
-  // }
-
 }
 
 

@@ -154,6 +154,9 @@ TrackingRecHit2DHeterogeneous<Traits>::TrackingRecHit2DHeterogeneous(
   m_hits.global_indexes = std::move(hits.global_indexes);
   m_hits.particle_indexes = std::move(hits.particle_indexes);
   m_hits.particle_pTs = std::move(hits.particle_pTs);
+  m_hits.particle_dRs = std::move(hits.particle_dRs);
+  m_hits.particle_Vzs = std::move(hits.particle_Vzs);
+  m_hits.particle_nHits = std::move(hits.particle_nHits);
   m_hits.phi = std::move(hits.phi);
 
   view->m_xg = m_hits.x.data();
@@ -163,6 +166,9 @@ TrackingRecHit2DHeterogeneous<Traits>::TrackingRecHit2DHeterogeneous(
   view->m_detInd = m_hits.global_indexes.data();
   view->m_pInd = m_hits.particle_indexes.data();
   view->m_pPT = m_hits.particle_pTs.data();
+  view->m_pdR = m_hits.particle_dRs.data();
+  view->m_pVz = m_hits.particle_Vzs.data();
+  view->m_pNHits = m_hits.particle_nHits.data();
   m_iphi = view->m_iphi = m_hits.phi.data();
 
   auto offSize = layerStart.size();
