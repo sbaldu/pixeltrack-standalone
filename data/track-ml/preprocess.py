@@ -1,4 +1,3 @@
-
 import pandas as pd
 
 
@@ -21,32 +20,31 @@ def calculate_index(volumes: pd.Series, layers: pd.Series) -> list:
 
 
 df_hits = pd.read_csv('event000001000-hits.csv')
-# data = data[data['volume_id'] <= 9]
-to_drop = df_hits[df_hits['volume_id'] > 9].index
-df_hits = df_hits.drop(to_drop) 
-df_hits['global_index'] = calculate_index(df_hits['volume_id'], df_hits['layer_id'])
-# print(df_hits.to_markdown())
-df_hits = df_hits.drop(['hit_id', 'volume_id', 'layer_id', 'module_id'], axis=1)
-df_hits.to_csv('hits_1000.csv', index=False)
-
-# 'event000001000-particles.csv'
-# particle_id,vx,vy,vz,px,py,pz,q,nhits
-# 4503668346847232,-0.00928816,0.00986098,-0.0778789,-0.0552689,0.323272,-0.203492,-1,8
-# 4503737066323968,-0.00928816,0.00986098,-0.0778789,-0.948125,0.470892,2.01006,1,11
-# 4503805785800704,-0.00928816,0.00986098,-0.0778789,-0.886484,0.105749,0.683881,-1,0
-
-df_particles = pd.read_csv('event000001000-particles.csv')
-# compute pT as sqrt(px^2 + py^2)
-df_particles['pt'] = (df_particles['px'] ** 2 + df_particles['py'] ** 2) ** 0.5
-
-
 df_truth = pd.read_csv('event000001000-truth.csv')
-df_truth =df_truth.drop(to_drop)
-# drop hit_id,tx,ty,tz,tpx,tpy,tpz,weight
-df_truth = df_truth.drop(['hit_id', 'tx', 'ty', 'tz', 'tpx', 'tpy', 'tpz', 'weight'], axis=1)
-# assign the correct pt based on the particle id
-df_truth['pt'] = df_truth['particle_id'].map(df_particles.set_index('particle_id')['pt'])
-# if particle_id is 0 set pt to 1
-df_truth['pt'] = df_truth['pt'].fillna(1)
-df_truth.to_csv('truth_1000.csv', index=False)
+df_particles = pd.read_csv('event000001000-particles.csv')
+# add an empty line for particle 0
+df_particles.loc[len(df_particles)] = 0
 
+
+df = pd.merge(df_hits, df_truth, on='hit_id')
+df = pd.merge(df, df_particles, on='particle_id')
+
+to_drop = df[df['volume_id'] > 9].index
+df = df.drop(to_drop)
+df['global_index'] = calculate_index(df['volume_id'], df['layer_id'])
+# Convert the data to cm
+df['x'] = df['x'] / 10
+df['y'] = df['y'] / 10
+df['z'] = df['z'] / 10
+df['vx'] = df['vx'] / 10
+df['vy'] = df['vy'] / 10
+df['vz'] = df['vz'] / 10
+# Compute pT and dR
+df['pt'] = (df['px'] ** 2 + df['py'] ** 2) ** 0.5
+df['dr'] = (df['vx'] ** 2 + df['vy'] ** 2) ** 0.5
+# Compute nhits
+df['nhits'] = df['particle_id'].map(df['particle_id'].value_counts())
+# Compute the number of unique global_indexes per particle
+df['nlayers'] = df.groupby('particle_id')['global_index'].transform('nunique')
+df = df.drop(['hit_id', 'volume_id', 'layer_id', 'module_id','px','py','pz','vx','vy', 'tx', 'ty', 'tz', 'tpx', 'tpy', 'tpz', 'weight', 'q'], axis=1)
+df.to_csv('trackml_1000.csv', index=False)
