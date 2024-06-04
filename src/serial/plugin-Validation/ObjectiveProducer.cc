@@ -31,6 +31,7 @@ std::map<std::string, float_t> ObjectiveProducer::result = {
   {"reconstructed", 0.f},
   {"simulated", 0.f},
   {"fakes", 0.f},
+  {"duplicates", 0.f},
   {"recotosim", 0.f},
   {"simtoreco", 0.f},
   {"efficiency", 0.f},
@@ -72,7 +73,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       uniques.insert(std::make_pair(index, values));
       }
   }
-  result["simulated"] = uniques.size();
+  result["simulated"] += uniques.size();
   
   std::map<int64_t, int> recos;
 
@@ -90,11 +91,10 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     auto quality = soa->quality(i);
     if (quality == trackQuality::bad)
       continue;
-    auto chi2 = soa->chi2(i);
+    // auto chi2 = soa->chi2(i);
     // std::cout << "chi2: " << chi2 << std::endl;
     auto majorityIndex{indeces.at(offset)};
     int count{1};
-    auto particle = hits->particleIndex(indeces.at(offset));
     for (int j = 1; j < nHits; ++j){
       // hitsPerLayer[hits->detectorIndex(indeces.at(offset+j))]++;
       if (hits->particleIndex(indeces.at(offset+j)) != hits->particleIndex(majorityIndex)){
@@ -104,16 +104,16 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         }
         continue;
       }
-      count++;
+      ++count;
     }
     for (int j = 0; j < nHits; ++j)
       if (hits->particleIndex(indeces.at(offset+j)) == hits->particleIndex(majorityIndex))
         ++same ;
-    particle = hits->particleIndex(majorityIndex);
+    auto particle = hits->particleIndex(majorityIndex);
     float threshold = same/nHits;
-    if (threshold>=0.75 && particle != 0){
+    if (threshold>0.75 && particle != 0){
       if (recos.find(particle) == recos.end())
-        recos[particle] = 0;
+        recos[particle] = 1;
       ++recos[particle];      
       ++result["recotosim"];
     }
@@ -135,11 +135,11 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   // out.open("simtoreco.csv");
   // out << "index, pT, dR, vz, nHits\n";
   for (auto & sim: uniques){
-    auto pInd = sim.first;
-    auto pT = std::get<0>(sim.second);
-    auto dR = std::get<1>(sim.second);
-    auto vz = std::get<2>(sim.second);
-    auto nHits = std::get<3>(sim.second);
+    // auto pInd = sim.first;
+    // auto pT = std::get<0>(sim.second);
+    // auto dR = std::get<1>(sim.second);
+    // auto vz = std::get<2>(sim.second);
+    // auto nHits = std::get<3>(sim.second);
     bool found_simtoreco = recos.find(sim.first) != recos.end();
     if (found_simtoreco) {
       // out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
@@ -152,7 +152,8 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 void ObjectiveProducer::endJob() {
   result["efficiency"] = result["simtoreco"]/result["simulated"];
   result["fakes"] = result["reconstructed"]-result["recotosim"];
-  result["fake_rate"] = result["fakes"]/result["reconstructed"];
+  result["duplicates"] = result["recotosim"] - result["simtoreco"];
+  result["fake_rate"] = (result["fakes"]+result["duplicates"])/result["reconstructed"];
   std::ofstream out("objectives.txt");
   for (auto const& elem : result) {
     out << elem.first << " " << elem.second << "\n";

@@ -148,7 +148,7 @@ namespace gpuPixelDoublets {
       // all cuts: true if fails
       constexpr float z0cut = 12.f;      // cm
       /* constexpr float hardPtCut = 0.5f;  // GeV */
-      constexpr float hardPtCut = 1.f;  // GeV
+      constexpr float hardPtCut = 0.9f;  // GeV
       constexpr float minRadius =
           /* hardPtCut * 87.78f;  // cm (1 GeV track has 1 GeV/c / (e * 3.8T) ~ 87 cm radius in a 3.8T field) */
           hardPtCut * 2 * 87.78f;  // cm (1 GeV track has 1 GeV/c / (e * 3.8T) ~ 87 cm radius in a 3.8T field)
@@ -160,12 +160,12 @@ namespace gpuPixelDoublets {
         auto dphi = short2phi(idphi);
         return dphi * dphi * (r2t4 - ri * ro) > (ro - ri) * (ro - ri);
       };
-      /* auto z0cutoff = [&](int j) { */
-      /*   auto zo = hh.zGlobal(j); */
-      /*   auto ro = hh.rGlobal(j); */
-      /*   auto dr = ro - mer; */
-      /*   return dr > maxr[pairLayerId] || dr < 0 || std::abs((mez * ro - mer * zo)) > z0cut * dr; */
-      /* }; */
+      //  auto z0cutoff = [&](int j) { 
+      //    auto zo = hh.zGlobal(j); 
+      //    auto ro = hh.rGlobal(j); 
+      //    auto dr = ro - mer; 
+      //    return dr > maxr[pairLayerId] || dr < 0 || std::abs((mez * ro - mer * zo)) > z0cut * dr; 
+      //  }; 
 
       auto zsizeCut = [&](int j) {
         auto onlyBarrel = outer < 4;
@@ -205,16 +205,35 @@ namespace gpuPixelDoublets {
         auto const* __restrict__ p = hist.begin(kk + hoff);
         auto const* __restrict__ e = hist.end(kk + hoff);
         p += first;
+        uint16_t previousOi = 0;
         for (; p < e; p += stride) {
           auto oi = *(p);
+          if (oi < offsets[outer]){
+            // //print hist content:
+            // for (auto const* __restrict__ p = hist.begin(kk + hoff); p < hist.end(kk + hoff); p += stride) {
+            //   printf("hist content: %d\n", *(p));
+            // }
+
+            // std::cout << "Last valid Oi: " << previousOi << '\n';
+            // std::cout << "kk: " << kk << " hoff: " << hoff << '\n';
+            // std::cout << "p: " << p << " e: " << e << '\n';
+            // std::cout << "inner: "<< std::to_string(inner) << "outer: " << std::to_string(outer) << '\n';
+            // std::cout << "oi: " << oi << " offsets[outer]: " << offsets[outer] << '\n';
+            // std::cout << "detectorIndex " << hh.detectorIndex(oi) << '\n';
+            // std::cout << "iphi " << hh.iphi(oi) << '\n';
+            // std::cout << "nHits " << hh.nHits() << '\n';
+            // std::cout << "particlePT" << hh.particlePT(oi) << '\n';
+            break;
+          }
           assert(oi >= offsets[outer]);
           assert(oi < offsets[outer + 1]);
+          auto previousOi = oi;
           /* auto mo = hh.detectorIndex(oi); */
           /* if (mo > 2000) */
           /*   continue;  //    invalid */
 
-          /* if (doZ0Cut && z0cutoff(oi)) */
-          /*   continue; */
+          // if (doZ0Cut && z0cutoff(oi)) 
+          //    continue; 
 
           auto mop = hh.iphi(oi);
           uint16_t idphi = std::min(std::abs(int16_t(mop - mep)), std::abs(int16_t(mep - mop)));

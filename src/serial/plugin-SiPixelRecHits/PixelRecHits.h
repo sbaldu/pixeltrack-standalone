@@ -9,6 +9,7 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <iomanip>
 
 #include "DataFormats/BeamSpotPOD.h"
 #include "DataFormats/approx_atan2.h"
@@ -34,13 +35,18 @@ namespace pixelgpudetails {
                                  SiPixelClustersSoA const& clusters_d,
                                  BeamSpotPOD const& bs_d,
                                  pixelCPEforGPU::ParamsOnGPU const* cpeParams) const;
-    TrackingRecHit2DCPU makeHits() {
+    TrackingRecHit2DCPU makeHits(int eventID){
       HitsCoordsSoA hits;
       uint32_t nHits{};
-
-      std::ifstream iFile("data/track-ml/trackml_1000.csv");
+      std::string dir = "/eos/user/s/srossiti/track-ml/preprocessed_train_100_events/";
+      //filename is trackml_049.csv with 49 being the eventID
+      std::stringstream eventid_ss;
+      eventid_ss << std::setw(3) << std::setfill('0') << (eventID-1);
+      std::string filename = "trackml_" + eventid_ss.str() + ".csv";
+      std::ifstream iFile(dir + filename);
       // std::ifstream iFile("data/track-ml/hits_high_eta.csv");
       // std::ifstream iFile("data/track-ml/hits_1000.csv");
+      std::cout << "Event ID: " << eventID << " Filename: " << filename << std::endl;
       if (!iFile.is_open()) {
         std::cerr << "Error opening file" << std::endl;
       }

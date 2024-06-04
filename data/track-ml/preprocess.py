@@ -19,15 +19,19 @@ def calculate_index(volumes: pd.Series, layers: pd.Series) -> list:
     return ids
 
 
-df_hits = pd.read_csv('event000001000-hits.csv')
-df_truth = pd.read_csv('event000001000-truth.csv')
-df_particles = pd.read_csv('event000001000-particles.csv')
+print('Reading event')
+
+df_hits = pd.read_csv('event_data/event000001000-hits.csv')
+df_truth = pd.read_csv('event_data/event000001000-truth.csv')
+df_particles = pd.read_csv('event_data/event000001000-particles.csv')
 # add an empty line for particle 0
 df_particles.loc[len(df_particles)] = 0
 
+print('Preprocessing')
 
 df = pd.merge(df_hits, df_truth, on='hit_id')
 df = pd.merge(df, df_particles, on='particle_id')
+
 
 to_drop = df[df['volume_id'] > 9].index
 df = df.drop(to_drop)
@@ -47,4 +51,7 @@ df['nhits'] = df['particle_id'].map(df['particle_id'].value_counts())
 # Compute the number of unique global_indexes per particle
 df['nlayers'] = df.groupby('particle_id')['global_index'].transform('nunique')
 df = df.drop(['hit_id', 'volume_id', 'layer_id', 'module_id','px','py','pz','vx','vy', 'tx', 'ty', 'tz', 'tpx', 'tpy', 'tpz', 'weight', 'q'], axis=1)
+
+print('Saving')
+
 df.to_csv('trackml_1000.csv', index=False)

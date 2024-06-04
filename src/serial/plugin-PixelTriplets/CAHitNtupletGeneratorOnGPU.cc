@@ -104,14 +104,14 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                false,              //useRiemannFit
                true,               // fit5as4,
                true,               //includeJumpingForwardDoublets
-               true,               // earlyFishbone
-               true,              // lateFishbone
+               false,               // earlyFishbone
+               false,              // lateFishbone
                true,               // idealConditions
                false,              //fillStatistics
                true,               // doClusterCut
                true,               // doZ0Cut
                true,               // doPtCut
-               0.899999976158,     // ptmin
+               0.9,     // ptmin
                0.00200000009499,   // CAThetaCutBarrel
                0.00300000002608,   // CAThetaCutForward
                0.0328407224959,    // hardCurvCut
@@ -150,14 +150,14 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                false,              //useRiemannFit
                true,               // fit5as4,
                true,               //includeJumpingForwardDoublets
-               true,               // earlyFishbone
-               true,              // lateFishbone
+               false,               // earlyFishbone
+               false,              // lateFishbone
                true,               // idealConditions
                false,              //fillStatistics
                true,               // doClusterCut
-               true,               // doZ0Cut
+               false,               // doZ0Cut
                true,               // doPtCut
-               0.899999976158,     // ptmin
+               0.9,                // ptmin
                0.00200000009499,   // CAThetaCutBarrel
                0.00300000002608,   // CAThetaCutForward
                0.0328407224959,    // hardCurvCut

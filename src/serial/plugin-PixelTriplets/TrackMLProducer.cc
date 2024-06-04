@@ -26,7 +26,7 @@ TrackMLProducer::TrackMLProducer(edm::ProductRegistry& reg)
     : algo_(), gpuAlgo_(reg), tokenHitCPU_(reg.produces<TrackingRecHit2DCPU>()) {}
 
 void TrackMLProducer::produce(edm::Event& iEvent, const edm::EventSetup& es) {
-  iEvent.emplace(tokenHitCPU_, algo_.makeHits());
+  iEvent.emplace(tokenHitCPU_, algo_.makeHits(iEvent.eventID()));
 }
 
 DEFINE_FWK_MODULE(TrackMLProducer);
