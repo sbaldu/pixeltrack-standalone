@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 def calculate_index(volumes: pd.Series, layers: pd.Series) -> list:
     ids = []
@@ -36,7 +38,8 @@ output_folder = "/eos/user/s/srossiti/track-ml/preprocessed_train_100_events"
 
 
 print("Reading data")
-for event_id in range(100):
+sumdf = pd.DataFrame()
+for event_id in range(10):
     print(f"Reading event {event_id}")
     df_hits = pd.read_csv(f'{folder_path}/event000001{str(event_id).zfill(3)}-hits.csv')
     df_particles = pd.read_csv(f'{folder_path}/event000001{str(event_id).zfill(3)}-particles.csv')
@@ -56,19 +59,20 @@ for event_id in range(100):
     df['x'] = df['x'] / 10
     df['y'] = df['y'] / 10
     df['z'] = df['z'] / 10
-    df['vx'] = df['vx'] / 10
-    df['vy'] = df['vy'] / 10
-    df['vz'] = df['vz'] / 10
-    # Compute pT and dR
-    df['pt'] = (df['px'] ** 2 + df['py'] ** 2) ** 0.5
-    df['dr'] = (df['vx'] ** 2 + df['vy'] ** 2) ** 0.5
-    # Compute nhits
-    df['nhits'] = df['particle_id'].map(df['particle_id'].value_counts())
-    # Compute the number of unique global_indexes per particle
-    df['nlayers'] = df.groupby('particle_id')['global_index'].transform('nunique')
-    # Dropping the columns that are not needed
-    df = df.drop(['hit_id', 'volume_id', 'layer_id', 'module_id','px','py','pz','vx','vy', 'tx', 'ty', 'tz', 'tpx', 'tpy', 'tpz', 'weight', 'q'], axis=1)
-    print('Saving')
-    df.to_csv(f'{output_folder}/trackml_{str(event_id).zfill(3)}.csv', index=False)
+    df['phi'] = np.arctan2(df['y'], df['x'])
 
-print("Done")
+    df_barrel_0 = df[df['global_index'].isin([0])]
+    df_barrel_0 = df_barrel_0[(df_barrel_0['z'] > 10) & (df_barrel_0['z'] < 10.5)]
+    # add df_barrel_0[['x', 'y', 'z', 'det_id']] to sumdf
+    sumdf = pd.concat([sumdf, df_barrel_0[['x', 'y', 'z','phi', 'det_id']]])
+
+# print mean std min max and delta phi for each det_id
+report_df = sumdf.groupby('det_id').agg({'phi': ['mean', 'std', 'min', 'max']}).reset_index()
+report_df['delta_phi'] = report_df['phi']['max'] - report_df['phi']['min']
+print(report_df)
+
+
+fig = plt.figure()
+plt.scatter(sumdf['x'], sumdf['y'], c=sumdf['det_id'], cmap='tab20', s=0.1)
+# show colorbar
+plt.savefig('scatter2d.png')

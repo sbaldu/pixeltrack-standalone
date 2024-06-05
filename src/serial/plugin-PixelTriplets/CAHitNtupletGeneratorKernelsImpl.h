@@ -221,8 +221,8 @@ void kernel_connect(cms::cuda::AtomicPairCounter *apc1,
     int numberOfPossibleNeighbors = isOuterHitOfCell[innerHitId].size();
     auto vi = isOuterHitOfCell[innerHitId].data();
 
-    constexpr uint32_t last_bpix1_detIndex = 96;
-    constexpr uint32_t last_barrel_detIndex = 3;	// the track-ml detector has 4 barrel layers
+    constexpr uint32_t last_bpix1_detIndex = 224; // last module index for first barrel layer
+    constexpr uint32_t last_barrel_detIndex = 2492;	// lasto module index for barrel
     auto ri = thisCell.get_inner_r(hh);
     auto zi = thisCell.get_inner_z(hh);
 

@@ -96,6 +96,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     auto majorityIndex{indeces.at(offset)};
     int count{1};
     for (int j = 1; j < nHits; ++j){
+      // std::cout << hits->detectorIndex(indeces.at(offset+j)) << '\t';
       // hitsPerLayer[hits->detectorIndex(indeces.at(offset+j))]++;
       if (hits->particleIndex(indeces.at(offset+j)) != hits->particleIndex(majorityIndex)){
         if (--count == 0){

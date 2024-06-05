@@ -152,6 +152,7 @@ TrackingRecHit2DHeterogeneous<Traits>::TrackingRecHit2DHeterogeneous(
   m_hits.z = std::move(hits.z);
   m_hits.r = std::move(hits.r);
   m_hits.global_indexes = std::move(hits.global_indexes);
+  m_hits.det_indexes = std::move(hits.det_indexes);
   m_hits.particle_indexes = std::move(hits.particle_indexes);
   m_hits.particle_pTs = std::move(hits.particle_pTs);
   m_hits.particle_dRs = std::move(hits.particle_dRs);
@@ -163,7 +164,7 @@ TrackingRecHit2DHeterogeneous<Traits>::TrackingRecHit2DHeterogeneous(
   view->m_yg = m_hits.y.data();
   view->m_zg = m_hits.z.data();
   view->m_rg = m_hits.r.data();
-  view->m_detInd = m_hits.global_indexes.data();
+  view->m_detInd = m_hits.det_indexes.data();
   view->m_pInd = m_hits.particle_indexes.data();
   view->m_pPT = m_hits.particle_pTs.data();
   view->m_pdR = m_hits.particle_dRs.data();

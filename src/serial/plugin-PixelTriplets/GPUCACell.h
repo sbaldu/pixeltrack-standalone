@@ -146,8 +146,12 @@ public:
     // detIndex of the layerStart for the Phase1 Pixel Detector:
     // [BPX1, BPX2, BPX3, BPX4,  FP1,  FP2,  FP3,  FN1,  FN2,  FN3, LAST_VALID]
     // [   0,   96,  320,  672, 1184, 1296, 1408, 1520, 1632, 1744,       1856]
-    constexpr uint32_t last_bpix1_detIndex = 96;
-    constexpr uint32_t last_barrel_detIndex = 1184;
+
+    // detIndex for TrackML
+    // [BPX1, BPX2, BPX3, BPX4,  FP1,  FP2,  FP3,  FP4,  FP5,  FP6,  FP7,  FN1,  FN2,  FN3,  FN4,  FN5,  FN6,  FN7, LAST_VALID]
+    // [ 224,  672, 1400, 2492, 2600, 2708, 2816, 2924, 3032, 3140, 3248, 3356, 3464, 3572, 3680, 3788, 3896, 4004,       4100]
+    constexpr uint32_t last_bpix1_detIndex = 224; 
+    constexpr uint32_t last_barrel_detIndex = 2600;
     auto ri = get_inner_r(hh);
     auto zi = get_inner_z(hh);
 

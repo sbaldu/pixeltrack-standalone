@@ -77,6 +77,8 @@ namespace pixelgpudetails {
         getline(fileStream, temp, ',');
         hits.global_indexes.push_back(std::stoi(temp));
         getline(fileStream, temp, ',');
+        hits.det_indexes.push_back(std::stoi(temp));
+        getline(fileStream, temp, ',');
         hits.particle_pTs.push_back(std::stof(temp));
         getline(fileStream, temp, ',');
         hits.particle_dRs.push_back(std::stof(temp));
@@ -101,6 +103,7 @@ namespace pixelgpudetails {
         hits_sorted.r.push_back(hits.r[indexes[i]]);
         hits_sorted.phi.push_back(hits.phi[indexes[i]]);
         hits_sorted.global_indexes.push_back(hits.global_indexes[indexes[i]]);
+        hits_sorted.det_indexes.push_back(hits.det_indexes[indexes[i]]);
         hits_sorted.particle_indexes.push_back(hits.particle_indexes[indexes[i]]);
         hits_sorted.particle_pTs.push_back(hits.particle_pTs[indexes[i]]);
         hits_sorted.particle_dRs.push_back(hits.particle_dRs[indexes[i]]);

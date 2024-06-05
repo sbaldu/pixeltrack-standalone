@@ -75,6 +75,7 @@ namespace gpuPixelDoublets {
           //        if (d[ic]==d[jc]) continue;
           // || l[ic]!=l[jc]) continue;
           auto cos12 = x[ic] * x[jc] + y[ic] * y[jc] + z[ic] * z[jc];
+          // if (cos12 * cos12 >= 0.75f * n[ic] * n[jc]) {
           if (d[ic] != d[jc] && cos12 * cos12 >= 0.99999f * n[ic] * n[jc]) {
             // alligned:  kill farthest  (prefer consecutive layers)
             if (n[ic] > n[jc]) {

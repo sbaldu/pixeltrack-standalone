@@ -104,8 +104,8 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                false,              //useRiemannFit
                true,               // fit5as4,
                true,               //includeJumpingForwardDoublets
-               false,               // earlyFishbone
-               false,              // lateFishbone
+               true,               // earlyFishbone
+               true,              // lateFishbone
                true,               // idealConditions
                false,              //fillStatistics
                true,               // doClusterCut
@@ -114,7 +114,7 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                0.9,     // ptmin
                0.00200000009499,   // CAThetaCutBarrel
                0.00300000002608,   // CAThetaCutForward
-               0.0328407224959,    // hardCurvCut
+               1/(0.35*87*1.9),    // hardCurvCut
                0.15000000596,      // dcaCutInnerTriplet
                0.25,               // dcaCutOuterTriplet
                makeQualityCuts(),  // QualityCuts
@@ -150,8 +150,8 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                false,              //useRiemannFit
                true,               // fit5as4,
                true,               //includeJumpingForwardDoublets
-               false,               // earlyFishbone
-               false,              // lateFishbone
+               true,               // earlyFishbone
+               true,              // lateFishbone
                true,               // idealConditions
                false,              //fillStatistics
                true,               // doClusterCut
@@ -160,7 +160,7 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
                0.9,                // ptmin
                0.00200000009499,   // CAThetaCutBarrel
                0.00300000002608,   // CAThetaCutForward
-               0.0328407224959,    // hardCurvCut
+               1/(0.35*87*1.9),    // hardCurvCut
                0.15000000596,      // dcaCutInnerTriplet
                0.25,               // dcaCutOuterTriplet
                makeQualityCuts(),  // QualityCuts
