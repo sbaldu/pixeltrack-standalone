@@ -14,17 +14,22 @@ namespace gpuPixelDoublets {
 
   // the pairs of layers of the TrackML detector
   constexpr uint8_t layerPairs[2 * nPairs] = {
-    0, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10,				// barrel to left disk layers
-    0, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17,	// barrel to right disk layers
-    1,4,2,4,1,11,2,11,
-    0, 1, 1, 2, 2, 3										// barrel to barrel                                
+    0,1,  0,4,  0,11,
+    1,2,  1,4,  1,11,
+    4,5, 11,12,
+    2,3, 2,4,  2,11,
+    5,6, 12,13,
+    6,7, 13,14,
+    7,8, 14,15,
+    8,9, 15,16,
+    9,10, 16,17                             
   };
 
   constexpr int16_t phi0p05 = 522;  // round(521.52189...) = phi2short(0.05);
   constexpr int16_t phi0p06 = 626;  // round(625.82270...) = phi2short(0.06);
   constexpr int16_t phi0p07 = 730;  // round(730.12648...) = phi2short(0.07);
 
-  constexpr int16_t phicuts[nPairs]{phi0p05, phi0p05, phi0p05, phi0p05};
+  constexpr int16_t defaultPhiCuts[nPairs]{phi0p05, phi0p05, phi0p05, phi0p05};
 
   // clang-format on
 
@@ -69,7 +74,7 @@ namespace gpuPixelDoublets {
                                 TrackingRecHit2DSOAView const* __restrict__ hhp,
                                 GPUCACell::OuterHitOfCell* isOuterHitOfCell,
                                 int nActualPairs,
-				bool ideal_cond,
+				                        bool idealCond,
                                 bool doClusterCut,
                                 bool doZ0Cut,
                                 bool doPtCut,
@@ -80,7 +85,7 @@ namespace gpuPixelDoublets {
     if (phiCuts==nullptr) {
       phiCuts = std::make_unique<int16_t[]>(nPairs);
       for (int i = 0; i < nPairs; ++i) {
-        phiCuts[i] = phicuts[i];
+        phiCuts[i] = defaultPhiCuts[i];
       }
     }
     doubletsFromHisto(layerPairs,
@@ -91,8 +96,8 @@ namespace gpuPixelDoublets {
                       cellTracks,
                       hh,
                       isOuterHitOfCell,
-                      phicuts,
-                      ideal_cond,
+                      phiCuts.get(),
+                      idealCond,
                       doClusterCut,
                       doZ0Cut,
                       doPtCut,

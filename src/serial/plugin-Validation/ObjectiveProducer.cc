@@ -77,6 +77,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   
   std::map<int64_t, int> recos;
 
+    auto duplicates = 0;
   for (int i = 0; i < soa->stride(); ++i){
     auto nHits = soa->nHits(i);
     if (nHits == 0)
@@ -112,15 +113,41 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         ++same ;
     auto particle = hits->particleIndex(majorityIndex);
     float threshold = same/nHits;
+    auto fake = true;
     if (threshold>0.75 && particle != 0){
       if (recos.find(particle) == recos.end())
-        recos[particle] = 1;
-      ++recos[particle];      
+        recos[particle] = 0;
+      ++recos[particle];
+      if (recos[particle] > 1){
+        ++duplicates;
+        std::cout << "Duplicate: ";
+        for (int j = 0; j < nHits; ++j){
+          // std::cout << hits->particleIndex(indeces.at(offset+j)) << '\t';
+          std::cout << hits->detectorIndex(indeces.at(offset+j)) << '\t';
+          // std::cout << hits->xGlobal(indeces.at(offset+j)) << '\t';
+        }
+        std::cout << std::endl;
+      }
+      else{
+        std::cout << "Reco: ";
+        for (int j = 0; j < nHits; ++j){
+          std::cout << hits->particleIndex(indeces.at(offset+j)) << '\t';
+        }
+        std::cout << std::endl;
+      }
       ++result["recotosim"];
+      fake = false;
+    }
+    if (fake){
+      std::cout << "Fake: ";
+      for (int j = 0; j < nHits; ++j){
+        std::cout << hits->particleIndex(indeces.at(offset+j)) << '\t';
+      }
+    std::cout << std::endl;
     }
     ++result["reconstructed"];
   }
-
+  std::cout << "Duplicates: " << duplicates << std::endl;
   // std::ofstream out("simulated.csv");
   // out << "index, pT, dR, vz, nHits\n";
   // for (auto & sim: uniques){
