@@ -191,8 +191,8 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
       stos(params_from_file[10]), stos(params_from_file[11]), stos(params_from_file[12]), stos(params_from_file[13]),
       stos(params_from_file[14]), stos(params_from_file[15]), stos(params_from_file[16]), stos(params_from_file[17]),
       stos(params_from_file[18]), stos(params_from_file[19]), stos(params_from_file[20]), stos(params_from_file[21]),
-      stos(params_from_file[22]), stos(params_from_file[23]), stos(params_from_file[24]), stos(params_from_file[24]),
-      stos(params_from_file[24])};
+      stos(params_from_file[22]), stos(params_from_file[23]), stos(params_from_file[24]), stos(params_from_file[25]),
+      stos(params_from_file[26])};
 
   m_params.doZ0Cut_=doZ0Cut_;
   m_params.CAThetaCutBarrel_=CAThetaCutBarrel_;

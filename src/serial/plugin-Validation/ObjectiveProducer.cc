@@ -71,6 +71,18 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   result["simulated"] += uniques.size();
 
   std::map<int64_t, int> recos;
+  std::string dir = "/eos/user/s/srossiti/track-ml/";
+
+  // auto dump_file = std::ofstream(dir + "reco_dump.csv");
+  // dump_file << "type, particle_id,"
+  //           << "hit1_id, hit1_x, hit1_y, hit1_z, hit1_r, hit1_module,"
+  //           << "hit2_id, hit2_x, hit2_y, hit2_z, hit2_r, hit2_module,"
+  //           << "hit3_id, hit3_x, hit3_y, hit3_z, hit3_r, hit3_module,"
+  //           << "hit4_id, hit4_x, hit4_y, hit4_z, hit4_r, hit4_module,"
+  //           << "hit5_id, hit5_x, hit5_y, hit5_z, hit5_r, hit5_module,"
+  //           << "hit6_id, hit6_x, hit6_y, hit6_z, hit6_r, hit6_module,"
+  //           << "hit7_id, hit7_x, hit7_y, hit7_z, hit7_r, hit7_module,"
+  //           <<'\n';
 
   auto duplicates = 0;
   for (int i = 0; i < soa->stride(); ++i) {
@@ -83,7 +95,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       break;
 
     auto quality = soa->quality(i);
-    if (quality == trackQuality::bad)
+    if (quality == trackQuality::bad || quality == trackQuality::dup)
       continue;
     // auto chi2 = soa->chi2(i);
     // std::cout << "chi2: " << chi2 << std::endl;
@@ -105,6 +117,7 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       if (hits->particleIndex(indeces.at(offset + j)) == hits->particleIndex(majorityIndex))
         ++same;
     auto particle = hits->particleIndex(majorityIndex);
+//    float threshold = same / static_cast<float>(nHits);
     float threshold = same / nHits;
     auto fake = true;
     if (threshold > 0.75 && particle != 0) {
@@ -113,33 +126,49 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       ++recos[particle];
       if (recos[particle] > 1) {
         ++duplicates;
-        std::cout << "Duplicate: ";
-        for (int j = 0; j < nHits; ++j) {
-          // std::cout << hits->particleIndex(indeces.at(offset+j)) << '\t';
-          std::cout << hits->detectorIndex(indeces.at(offset + j)) << '\t';
-          // std::cout << hits->xGlobal(indeces.at(offset+j)) << '\t';
-        }
-        std::cout << std::endl;
+        // dump_file << "duplicate,";
+        // dump_file << hits->particleIndex(majorityIndex) << ",";
+        // for (int j = 0; j < std::min(nHits, 7); ++j) {
+        //   dump_file << indeces.at(offset + j) << ",";
+        //   dump_file << hits->xGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->yGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->zGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->rGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->detectorIndex(indeces.at(offset + j)) << ",";
+        // }
+        // dump_file << '\n';
       } else {
-        std::cout << "Reco: ";
-        for (int j = 0; j < nHits; ++j) {
-          std::cout << hits->particleIndex(indeces.at(offset + j)) << '\t';
-        }
-        std::cout << std::endl;
+        // dump_file << "reco,";
+        // dump_file << hits->particleIndex(majorityIndex) << ",";
+        // for (int j = 0; j < std::min(nHits, 7); ++j) {
+        //   dump_file << indeces.at(offset + j) << ",";
+        //   dump_file << hits->xGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->yGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->zGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->rGlobal(indeces.at(offset + j)) << ",";
+        //   dump_file << hits->detectorIndex(indeces.at(offset + j)) << ",";
+        // }
+        // dump_file << '\n';
       }
       ++result["recotosim"];
       fake = false;
     }
     if (fake) {
-      std::cout << "Fake: ";
-      for (int j = 0; j < nHits; ++j) {
-        std::cout << hits->particleIndex(indeces.at(offset + j)) << '\t';
-      }
-      std::cout << std::endl;
+      // dump_file << "fake,";
+      // dump_file << hits->particleIndex(majorityIndex) << ",";
+      // for (int j = 0; j < std::min(nHits, 7); ++j) {
+      //   dump_file << indeces.at(offset + j) << ",";
+      //   dump_file << hits->xGlobal(indeces.at(offset + j)) << ",";
+      //   dump_file << hits->yGlobal(indeces.at(offset + j)) << ",";
+      //   dump_file << hits->zGlobal(indeces.at(offset + j)) << ",";
+      //   dump_file << hits->rGlobal(indeces.at(offset + j)) << ",";
+      //   dump_file << hits->detectorIndex(indeces.at(offset + j)) << ",";
+      //   }
+      // dump_file << '\n';
     }
     ++result["reconstructed"];
   }
-  std::cout << "Duplicates: " << duplicates << std::endl;
+  // std::cout << "Duplicates: " << duplicates << std::endl;
   // std::ofstream out("simulated.csv");
   // out << "index, pT, dR, vz, nHits\n";
   // for (auto & sim: uniques){
@@ -154,25 +183,27 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   // out.open("simtoreco.csv");
   // out << "index, pT, dR, vz, nHits\n";
-  for (auto& sim : uniques) {
-    // auto pInd = sim.first;
-    // auto pT = std::get<0>(sim.second);
-    // auto dR = std::get<1>(sim.second);
-    // auto vz = std::get<2>(sim.second);
-    // auto nHits = std::get<3>(sim.second);
-    bool found_simtoreco = recos.find(sim.first) != recos.end();
-    if (found_simtoreco) {
-      // out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
-      ++result["simtoreco"];
-    }
-  }
+  // for (auto& sim : uniques) {
+  //   auto pInd = sim.first;
+  //   auto pT = std::get<0>(sim.second);
+  //   auto dR = std::get<1>(sim.second);
+  //   auto vz = std::get<2>(sim.second);
+  //   auto nHits = std::get<3>(sim.second);
+  //   bool found_simtoreco = recos.find(sim.first) != recos.end();
+  //   if (found_simtoreco) {
+  //     out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
+  //     ++result["simtoreco"];
+  //   }
+  // }
 }
 
 void ObjectiveProducer::endJob() {
   result["efficiency"] = result["simtoreco"] / result["simulated"];
   result["fakes"] = result["reconstructed"] - result["recotosim"];
   result["duplicates"] = result["recotosim"] - result["simtoreco"];
-  result["fake_rate"] = (result["fakes"] + result["duplicates"]) / result["reconstructed"];
+  result["fake+duplicates_rate"] = (result["fakes"] + result["duplicates"]) / result["reconstructed"];
+  result["fake_rate"] = result["fakes"] / result["reconstructed"];
+  std::cout << "Writing objectives.txt" << '\n';
   std::ofstream out("objectives.txt");
   for (auto const& elem : result) {
     out << elem.first << " " << elem.second << "\n";
@@ -180,3 +211,4 @@ void ObjectiveProducer::endJob() {
 }
 
 DEFINE_FWK_MODULE(ObjectiveProducer);
+

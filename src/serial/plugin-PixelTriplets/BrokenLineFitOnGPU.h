@@ -42,7 +42,7 @@ void kernelBLFastFit(Tuples const *__restrict__ foundNtuplets,
   // look in bin for this hit multiplicity
   auto local_start = 0;
 
-  /* #ifdef BROKENLINE_DEBUG */
+  #ifdef BROKENLINE_DEBUG
   if (0 == local_start) {
     printf("%d total Ntuple\n", foundNtuplets->nbins());
     printf("%d Ntuple of size %d for %d hits to fit\n",
@@ -50,7 +50,7 @@ void kernelBLFastFit(Tuples const *__restrict__ foundNtuplets,
            nHits,
            hitsInFit);
   }
-  /* #endif */
+  #endif
 
   for (int local_idx = local_start, nt = Rfit::maxNumberOfConcurrentFits(); local_idx < nt;
        local_idx++) {
