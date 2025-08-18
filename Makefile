@@ -81,8 +81,15 @@ export CUDA_CXXFLAGS := -I$(CUDA_BASE)/include
 export CUDA_TEST_CXXFLAGS := -DGPU_DEBUG
 export CUDA_LDFLAGS := -L$(CUDA_LIBDIR) -lcudart -lcudadevrt
 export CUDA_NVCC := $(CUDA_BASE)/bin/nvcc
+CUDA_VERSION := $(shell $(CUDA_NVCC) --version | grep release | sed -e's/.*release //' -e's/,.*//' -e's/\.//')
+# CUDA 12.8 and newer does not support non-ASCII characters in PTX, including in comments
+ifeq ($(shell test $(CUDA_VERSION) -ge 128 && echo 'buggy'),buggy)
+CUDA_DEBUG_FLAGS := --generate-line-info
+else
+CUDA_DEBUG_FLAGS := --generate-line-info --source-in-ptx
+endif
 define CUFLAGS_template
-$(2)NVCC_FLAGS := $$(foreach ARCH,$(1),-gencode arch=compute_$$(ARCH),code=[sm_$$(ARCH),compute_$$(ARCH)]) -Wno-deprecated-gpu-targets -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored --expt-relaxed-constexpr --expt-extended-lambda --generate-line-info --source-in-ptx --display-error-number --threads $$(words $(1)) --cudart=shared
+$(2)NVCC_FLAGS := $$(foreach ARCH,$(1),-gencode arch=compute_$$(ARCH),code=[sm_$$(ARCH),compute_$$(ARCH)]) -Wno-deprecated-gpu-targets -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored --expt-relaxed-constexpr --expt-extended-lambda $(CUDA_DEBUG_FLAGS) --display-error-number --threads $$(words $(1)) --cudart=shared
 $(2)NVCC_COMMON := -std=c++17 -O3 -g $$($(2)NVCC_FLAGS) -ccbin $(CXX) --compiler-options '$(HOST_CXXFLAGS) $(USER_CXXFLAGS)'
 $(2)CUDA_CUFLAGS := -dc $$($(2)NVCC_COMMON) $(USER_CUDAFLAGS)
 $(2)CUDA_DLINKFLAGS := -dlink $$($(2)NVCC_COMMON)
@@ -326,10 +333,14 @@ NEED_BOOST := $(shell awk '/.define *BOOST_VERSION\>/ { if ($$3 < $(BOOST_MIN_VE
 endif
 ifeq ($(NEED_BOOST),true)
 BOOST_BASE := $(EXTERNAL_BASE)/boost
-endif
 export BOOST_DEPS := $(BOOST_BASE)
 export BOOST_CXXFLAGS := -isystem $(BOOST_BASE)/include
 export BOOST_LDFLAGS := -L$(BOOST_BASE)/lib
+else
+export BOOST_DEPS :=
+export BOOST_CXXFLAGS :=
+export BOOST_LDFLAGS :=
+endif
 export BOOST_NVCC_CXXFLAGS :=
 export BOOST_SYCL_CXXFLAGS :=
 
@@ -341,7 +352,7 @@ export BACKTRACE_SYCL_CXXFLAGS :=
 
 ALPAKA_BASE := $(EXTERNAL_BASE)/alpaka
 export ALPAKA_DEPS := $(ALPAKA_BASE)
-export ALPAKA_CXXFLAGS := -isystem $(ALPAKA_BASE)/include
+export ALPAKA_CXXFLAGS := -isystem $(ALPAKA_BASE)/include -DALPAKA_DISABLE_ASSERT_ACC
 
 KOKKOS_BASE := $(EXTERNAL_BASE)/kokkos
 KOKKOS_SRC := $(KOKKOS_BASE)/source
@@ -438,6 +449,11 @@ ifdef KOKKOS_HOST_PARALLEL
 endif
 export KOKKOS_DEPS := $(KOKKOS_LIB)
 
+# Julia
+JULIA_BASE := $(EXTERNAL_BASE)/julia
+export JULIA_DEPOT_PATH := $(JULIA_BASE)/depot:
+export JULIA_DEPS := $(JULIA_BASE)
+export PATH := $(JULIA_BASE)/bin:$(PATH)
 
 # OpenMP target offload
 
@@ -590,6 +606,9 @@ endif
 ifneq ($(SYCL_BASE),)
 	@echo -n '$(SYCL_PATH):'                                                >> $@
 endif
+ifneq ($(JULIA_BASE),)
+	@echo -n '$(JULIA_BASE)/bin:'                                           >> $@
+endif
 	@echo '$$PATH'                                                          >> $@
 ifneq ($(SYCL_BASE),)
 	@# load the CPU OpenCL runtime
@@ -598,6 +617,10 @@ ifneq ($(SYCL_BASE),)
 	@# see https://github.com/intel/compute-runtime/blob/master/opencl/doc/FAQ.md#feature-double-precision-emulation-fp64
 	@echo 'export IGC_EnableDPEmulation=1'                                  >> $@
 	@echo 'export OverrideDefaultFP64Settings=1'                            >> $@
+endif
+ifneq ($(JULIA_BASE),)
+	@echo '# override the Julia depot path'					>> $@
+	@echo -n 'export JULIA_DEPOT_PATH=$(JULIA_BASE)/depot:'                 >> $@
 endif
 
 define TARGET_template
@@ -728,7 +751,7 @@ external_boost: $(BOOST_BASE)
 $(BOOST_BASE): CXXFLAGS:=
 $(BOOST_BASE):
 	$(eval BOOST_TMP := $(shell mktemp -d))
-	curl -L -s -S https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.bz2 | tar xj -C $(BOOST_TMP)
+	curl -L -s -S https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.bz2 | tar xj -C $(BOOST_TMP)
 	cd $(BOOST_TMP)/boost_1_78_0 && ./bootstrap.sh && ./b2 install --prefix=$@ --without-graph_parallel --without-mpi --without-python
 	@rm -rf $(BOOST_TMP)
 	$(eval undefine BOOST_TMP)
@@ -769,7 +792,7 @@ external_alpaka: $(ALPAKA_BASE)
 
 $(ALPAKA_BASE):
 	git clone https://github.com/alpaka-group/alpaka.git -b develop $@
-	cd $@ && git checkout bb74c9129e8761cb74b9733b034eec62f7c0f600
+	cd $@ && git checkout 1.3.0
 
 # Kokkos
 external_kokkos: $(KOKKOS_LIB)
@@ -797,3 +820,10 @@ $(KOKKOS_LIB): $(KOKKOS_MAKEFILE)
 
 external_kokkos_clean:
 	rm -fR $(KOKKOS_BUILD) $(KOKKOS_INSTALL)
+
+# Julia
+.PHONY: external_julia
+external_julia: $(JULIA_BASE)
+
+$(JULIA_BASE):
+	mkdir -p $@ && curl -L https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.0-rc1-linux-x86_64.tar.gz | tar xz --strip-components=1 -C $@
