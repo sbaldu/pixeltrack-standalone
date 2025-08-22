@@ -165,6 +165,7 @@ CAHitNtupletGeneratorOnGPU::CAHitNtupletGeneratorOnGPU(edm::ProductRegistry& reg
 {
   std::ifstream file(filename);
   if (!file.is_open()) {
+    printf("%s\n", filename.c_str());
     printf("No file opened\n");
     return;
   }

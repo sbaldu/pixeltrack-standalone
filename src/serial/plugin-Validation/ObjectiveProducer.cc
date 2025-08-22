@@ -48,14 +48,13 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto* soa = tracks.get();
 
   std::vector<uint16_t> indeces;
-  for (auto& e : soa->hitIndices) {
+  indeces.reserve(soa->hitIndices.size());
+  for (const auto& e : soa->hitIndices) {
     indeces.push_back(e);
   }
 
-  // assert(indeces.size() > 0);
-  // std::map<int, int> hitsPerLayer;
-
-  std::map<int64_t, std::tuple<float, float, float, int>> uniques;
+  std::unordered_map<int64_t, std::tuple<float, float, float, int>> uniques;
+  uniques.reserve(nHits);
   for (size_t i = 0; i < nHits; ++i) {
     if (hits->particlePT(i) > 0.9 && hits->particleNHits(i) > 3) {
       auto pT = hits->particlePT(i);
@@ -63,14 +62,13 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       auto vz = hits->particleVz(i);
       auto pnHits = hits->particleNHits(i);
       auto index = hits->particleIndex(i);
-
-      auto values = std::make_tuple(pT, dR, vz, pnHits);
-      uniques.insert(std::make_pair(index, values));
+      uniques.emplace(index, std::make_tuple(pT, dR, vz, pnHits));
     }
   }
   result["simulated"] += uniques.size();
 
-  std::map<int64_t, int> recos;
+  std::unordered_map<int64_t, int> recos;
+  recos.reserve(uniques.size());
   std::string dir = "/eos/user/s/srossiti/track-ml/";
 
   // auto dump_file = std::ofstream(dir + "reco_dump.csv");
@@ -89,82 +87,40 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     auto nHits = soa->nHits(i);
     if (nHits == 0)
       break;
-    float same = 1.;
     auto offset = soa->hitIndices.off[i];
     if (offset >= indeces.size())
       break;
-
     auto quality = soa->quality(i);
     if (quality == trackQuality::bad || quality == trackQuality::dup)
       continue;
-    // auto chi2 = soa->chi2(i);
-    // std::cout << "chi2: " << chi2 << std::endl;
-    auto majorityIndex{indeces.at(offset)};
-    int count{1};
-    for (int j = 1; j < nHits; ++j) {
-      // std::cout << hits->detectorIndex(indeces.at(offset+j)) << '\t';
-      // hitsPerLayer[hits->detectorIndex(indeces.at(offset+j))]++;
-      if (hits->particleIndex(indeces.at(offset + j)) != hits->particleIndex(majorityIndex)) {
-        if (--count == 0) {
-          majorityIndex = indeces.at(offset + j);
-          count = 1;
-        }
-        continue;
-      }
-      ++count;
+    // Find majority particle index and count matches in one pass
+    std::unordered_map<int64_t, int> particle_counts;
+    particle_counts.reserve(nHits);
+    for (int j = 0; j < nHits; ++j) {
+      int64_t pidx = hits->particleIndex(indeces.at(offset + j));
+      ++particle_counts[pidx];
     }
-    for (int j = 0; j < nHits; ++j)
-      if (hits->particleIndex(indeces.at(offset + j)) == hits->particleIndex(majorityIndex))
-        ++same;
-    auto particle = hits->particleIndex(majorityIndex);
-//    float threshold = same / static_cast<float>(nHits);
-    float threshold = same / nHits;
+    // Find majority
+    int64_t majorityIndex = 0;
+    int max_count = 0;
+    for (const auto& kv : particle_counts) {
+      if (kv.second > max_count) {
+        majorityIndex = kv.first;
+        max_count = kv.second;
+      }
+    }
+    float threshold = static_cast<float>(max_count) / nHits;
     auto fake = true;
-    if (threshold > 0.75 && particle != 0) {
-      if (recos.find(particle) == recos.end())
-        recos[particle] = 0;
-      ++recos[particle];
-      if (recos[particle] > 1) {
+    if (threshold > 0.75f && majorityIndex != 0) {
+      auto it = recos.find(majorityIndex);
+      if (it == recos.end())
+        recos[majorityIndex] = 0;
+      ++recos[majorityIndex];
+      if (recos[majorityIndex] > 1) {
         ++duplicates;
-        // dump_file << "duplicate,";
-        // dump_file << hits->particleIndex(majorityIndex) << ",";
-        // for (int j = 0; j < std::min(nHits, 7); ++j) {
-        //   dump_file << indeces.at(offset + j) << ",";
-        //   dump_file << hits->xGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->yGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->zGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->rGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->detectorIndex(indeces.at(offset + j)) << ",";
-        // }
-        // dump_file << '\n';
-      } else {
-        // dump_file << "reco,";
-        // dump_file << hits->particleIndex(majorityIndex) << ",";
-        // for (int j = 0; j < std::min(nHits, 7); ++j) {
-        //   dump_file << indeces.at(offset + j) << ",";
-        //   dump_file << hits->xGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->yGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->zGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->rGlobal(indeces.at(offset + j)) << ",";
-        //   dump_file << hits->detectorIndex(indeces.at(offset + j)) << ",";
-        // }
-        // dump_file << '\n';
       }
       ++result["recotosim"];
       fake = false;
-    }
-    if (fake) {
-      // dump_file << "fake,";
-      // dump_file << hits->particleIndex(majorityIndex) << ",";
-      // for (int j = 0; j < std::min(nHits, 7); ++j) {
-      //   dump_file << indeces.at(offset + j) << ",";
-      //   dump_file << hits->xGlobal(indeces.at(offset + j)) << ",";
-      //   dump_file << hits->yGlobal(indeces.at(offset + j)) << ",";
-      //   dump_file << hits->zGlobal(indeces.at(offset + j)) << ",";
-      //   dump_file << hits->rGlobal(indeces.at(offset + j)) << ",";
-      //   dump_file << hits->detectorIndex(indeces.at(offset + j)) << ",";
-      //   }
-      // dump_file << '\n';
     }
     ++result["reconstructed"];
   }
@@ -181,20 +137,22 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   //  }
   // out.close();
 
-  // out.open("simtoreco.csv");
+  // Optionally, you can write to simtoreco.csv as before
+  // std::ofstream out("simtoreco.csv");
   // out << "index, pT, dR, vz, nHits\n";
-  // for (auto& sim : uniques) {
-  //   auto pInd = sim.first;
-  //   auto pT = std::get<0>(sim.second);
-  //   auto dR = std::get<1>(sim.second);
-  //   auto vz = std::get<2>(sim.second);
-  //   auto nHits = std::get<3>(sim.second);
-  //   bool found_simtoreco = recos.find(sim.first) != recos.end();
-  //   if (found_simtoreco) {
-  //     out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
-  //     ++result["simtoreco"];
-  //   }
-  // }
+  for (auto& sim : uniques) {
+    // auto pInd = sim.first;
+    // auto pT = std::get<0>(sim.second);
+    // auto dR = std::get<1>(sim.second);
+    // auto vz = std::get<2>(sim.second);
+    // auto nHits = std::get<3>(sim.second);
+    bool found_simtoreco = recos.find(sim.first) != recos.end();
+    if (found_simtoreco) {
+      // If you want to dump info, uncomment below
+      // out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
+      ++result["simtoreco"];
+    }
+  }
 }
 
 void ObjectiveProducer::endJob() {

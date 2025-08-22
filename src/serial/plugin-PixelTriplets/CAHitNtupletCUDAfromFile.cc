@@ -25,7 +25,7 @@ private:
 CAHitNtupletCUDAfromFile::CAHitNtupletCUDAfromFile(edm::ProductRegistry& reg)
     : tokenHitCPU_{reg.consumes<TrackingRecHit2DCPU>()},
       tokenTrackCPU_{reg.produces<PixelTrackHeterogeneous>()},
-      gpuAlgo_(reg, "/afs/cern.ch/user/s/srossiti/pixeltrack-standalone/params.txt") {}
+      gpuAlgo_(reg, "./params.txt") {}
 
 void CAHitNtupletCUDAfromFile::produce(edm::Event& iEvent, const edm::EventSetup& es) {
   auto bf = 0.0114256972711507;  // 1/fieldInGeV
