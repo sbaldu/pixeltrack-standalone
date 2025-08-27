@@ -101,19 +101,3 @@ pso = optimizer.MOPSO(objective=objective, lower_bounds=lb, upper_bounds=ub,
 
 # run the optimization algorithm
 pso.optimize(num_iterations)
-
-pareto_front = pso.pareto_front
-n_pareto_points = len(pareto_front)
-pareto_y = [1-particle.fitness[0] for particle in pareto_front]
-pareto_x = [particle.fitness[1] for particle in pareto_front]
-
-default_x = 0.0401981
-default_y = 0.554898
-
-plt.scatter(pareto_x, pareto_y, s=5)
-plt.scatter(default_x, default_y, s=5, c='red', marker = '+')
-
-plt.ylabel('Efficiency')
-plt.xlabel('Fake Rate')
-
-plt.savefig('optimization/pf.png')
