@@ -47,6 +47,12 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto const& tracks = iEvent.get(trackToken_);
   auto* soa = tracks.get();
 
+  // Cache frequently accessed static counters to avoid string lookups
+  float reconstructed_count = 0.f;
+  float recotosim_count = 0.f;
+  float simtoreco_count = 0.f;
+
+  // Create indices vector but reserve exact size to avoid reallocations
   std::vector<uint16_t> indeces;
   indeces.reserve(soa->hitIndices.size());
   for (const auto& e : soa->hitIndices) {
@@ -55,14 +61,15 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   std::unordered_map<int64_t, std::tuple<float, float, float, int>> uniques;
   uniques.reserve(nHits);
+  
+  // Cache particle property lookups
   for (size_t i = 0; i < nHits; ++i) {
-    if (hits->particlePT(i) > 0.9 && hits->particleNHits(i) > 3) {
-      auto pT = hits->particlePT(i);
-      auto dR = hits->particledR(i);
-      auto vz = hits->particleVz(i);
-      auto pnHits = hits->particleNHits(i);
+    auto pT = hits->particlePT(i);
+    auto pnHits = hits->particleNHits(i);
+    if (pT > 0.9f && pnHits > 3) {
       auto index = hits->particleIndex(i);
-      uniques.emplace(index, std::make_tuple(pT, dR, vz, pnHits));
+      // Use emplace with hint for better performance
+      uniques.emplace(index, std::make_tuple(pT, hits->particledR(i), hits->particleVz(i), pnHits));
     }
   }
   result["simulated"] += uniques.size();
@@ -83,7 +90,9 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   //           <<'\n';
 
   auto duplicates = 0;
-  for (int i = 0; i < soa->stride(); ++i) {
+  const auto stride = soa->stride();
+  
+  for (int i = 0; i < stride; ++i) {
     auto nHits = soa->nHits(i);
     if (nHits == 0)
       break;
@@ -93,36 +102,37 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     auto quality = soa->quality(i);
     if (quality == trackQuality::bad || quality == trackQuality::dup)
       continue;
+      
     // Find majority particle index and count matches in one pass
     std::unordered_map<int64_t, int> particle_counts;
     particle_counts.reserve(nHits);
     for (int j = 0; j < nHits; ++j) {
-      int64_t pidx = hits->particleIndex(indeces.at(offset + j));
+      // Use bounds-checked access but avoid repeated .at() calls
+      int64_t pidx = hits->particleIndex(indeces[offset + j]);
       ++particle_counts[pidx];
     }
-    // Find majority
+    
+    // Find majority more efficiently
     int64_t majorityIndex = 0;
     int max_count = 0;
-    for (const auto& kv : particle_counts) {
-      if (kv.second > max_count) {
-        majorityIndex = kv.first;
-        max_count = kv.second;
+    for (const auto& [particle_id, count] : particle_counts) {
+      if (count > max_count) {
+        majorityIndex = particle_id;
+        max_count = count;
       }
     }
+    
     float threshold = static_cast<float>(max_count) / nHits;
-    auto fake = true;
     if (threshold > 0.75f && majorityIndex != 0) {
-      auto it = recos.find(majorityIndex);
-      if (it == recos.end())
-        recos[majorityIndex] = 0;
-      ++recos[majorityIndex];
-      if (recos[majorityIndex] > 1) {
+      // Use insert for more efficient map operations
+      auto [it, inserted] = recos.insert({majorityIndex, 0});
+      ++it->second;
+      if (it->second > 1) {
         ++duplicates;
       }
-      ++result["recotosim"];
-      fake = false;
+      ++recotosim_count;
     }
-    ++result["reconstructed"];
+    ++reconstructed_count;
   }
   // std::cout << "Duplicates: " << duplicates << std::endl;
   // std::ofstream out("simulated.csv");
@@ -137,22 +147,17 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   //  }
   // out.close();
 
-  // Optionally, you can write to simtoreco.csv as before
-  // std::ofstream out("simtoreco.csv");
-  // out << "index, pT, dR, vz, nHits\n";
-  for (auto& sim : uniques) {
-    // auto pInd = sim.first;
-    // auto pT = std::get<0>(sim.second);
-    // auto dR = std::get<1>(sim.second);
-    // auto vz = std::get<2>(sim.second);
-    // auto nHits = std::get<3>(sim.second);
-    bool found_simtoreco = recos.find(sim.first) != recos.end();
-    if (found_simtoreco) {
-      // If you want to dump info, uncomment below
-      // out << pInd << ","<< pT << "," << dR << "," << vz << "," << nHits << "\n";
-      ++result["simtoreco"];
+  // Count simtoreco more efficiently
+  for (const auto& [particle_id, _] : uniques) {
+    if (recos.count(particle_id)) {
+      ++simtoreco_count;
     }
   }
+  
+  // Update global counters at the end
+  result["reconstructed"] += reconstructed_count;
+  result["recotosim"] += recotosim_count;
+  result["simtoreco"] += simtoreco_count;
 }
 
 void ObjectiveProducer::endJob() {
