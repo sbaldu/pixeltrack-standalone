@@ -13,7 +13,7 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
 
 plt.style.use(hep.style.CMS) #1
 plt.rcParams['figure.facecolor'] = 'white' #2
-hep.cms.text('Preliminary') #3
+# hep.cms.text('Preliminary') #3
 
 df = pd.read_csv('optimization/checkpoint/pareto_front.csv')
 
@@ -36,6 +36,9 @@ objective_names = df.columns[-2:].tolist()
 default_eff = 0.43711
 default_fake = 0.0214034
 
+tuned_eff = 0.437242
+tuned_fake = 0.00303245
+
 
 cb_red = '#e42536'
 cb_blue = '#5790fc'
@@ -46,13 +49,22 @@ cb_orange = '#f89c20'
 new_cmap = truncate_colormap(plt.get_cmap('Blues'), 0, 1)
 
 
-for i in range(50):
-    plt.scatter(fitnesses[i][:,1], 1-fitnesses[i][:,0], color=cb_blue, alpha=(i+1)/50, edgecolors='none', s=28)
-plt.scatter(pf_fitnesses[:,1], 1-pf_fitnesses[:,0], color=cb_red, label='Pareto Front', s=28)
-plt.scatter(default_fake, 1-default_eff, color=cb_orange, label='Default', marker='X',s=100)
+# for i in range(50):
+#     plt.scatter(fitnesses[i][:,1], 1-fitnesses[i][:,0], color=cb_blue, alpha=(i+1)/50, edgecolors='none', s=28)
+plt.scatter(pf_fitnesses[:,1], 1-pf_fitnesses[:,0], color='black', label='Pareto Front', s=20)
+plt.scatter(default_fake, 1-default_eff, color='blue', label='Default Parameters', marker='s',s=20)
+plt.scatter(tuned_fake, 1-tuned_eff, color='red', label='Tuned Parameters', marker='X',s=20)
+# add labels to the two points above
+plt.text(default_fake -0.0026, 1-default_eff - 0.045, f'({default_fake:.3f}, {1-default_eff:.3f})', color='blue', fontsize=18)
+plt.text(tuned_fake, 1-tuned_eff -0.045, f'({tuned_fake:.3f}, {1-tuned_eff:.3f})', color='red', fontsize=18)
 
-plt.xlim(0, 0.025)
-plt.legend()
+
+plt.xlabel("TrackML Pixel Tracks Fake Rates")
+plt.ylabel("TrackML Pixel Tracks Efficiency")
+
+plt.ylim(0,1)
+plt.xlim(-0.001, 0.025)
+plt.legend(loc='lower right')
 
 plt.savefig('optimization/pareto_front.png')
 plt.savefig('optimization/pareto_front.pdf')

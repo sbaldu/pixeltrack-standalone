@@ -32,6 +32,8 @@ Options:
   --validation                  Run (rudimentary) validation at the end.
   --histogram                   Produce histograms at the end.
   --objective                   Produce file with efficiency and fake rates at the end.
+  --paramsFromFile              Load CA parameters from file.
+  --objectiveValidation         Produce files with tracks pt, eta, phi at the end.
   --empty                       Ignore all producers (for testing only).
 )";
   }
@@ -51,6 +53,7 @@ int main(int argc, char** argv) {
   bool objective = false;
   bool empty = false;
   bool paramsFromFile = false;
+  bool objectiveValidation = false;
   for (auto i = args.begin() + 1, e = args.end(); i != e; ++i) {
     if (*i == "-h" or *i == "--help") {
       print_help(args.front());
@@ -83,6 +86,12 @@ int main(int argc, char** argv) {
       empty = true;
     } else if (*i == "--paramsFromFile") {
       paramsFromFile = true;
+    } else if (*i == "--objectiveValidation") {
+      if (objective) {
+        std::cout << "Cannot use both --objective and --objectiveValidation" << std::endl;
+        return EXIT_FAILURE;
+      }
+      objectiveValidation = true;
     } else {
       std::cout << "Invalid parameter " << *i << std::endl << std::endl;
       print_help(args.front());
@@ -132,6 +141,8 @@ int main(int argc, char** argv) {
     }
     if (objective) {
       edmodules.emplace_back("ObjectiveProducer");
+    } else if (objectiveValidation) {
+      edmodules.emplace_back("ObjectiveValidator");
     }
   }
   edm::EventProcessor processor(warmupEvents,

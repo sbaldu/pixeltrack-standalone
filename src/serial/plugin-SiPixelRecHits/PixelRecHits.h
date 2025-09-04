@@ -38,10 +38,10 @@ namespace pixelgpudetails {
     TrackingRecHit2DCPU makeHits(int eventID){
       HitsCoordsSoA hits;
       uint32_t nHits{};
-      std::string dir = "/eos/user/s/srossiti/track-ml/preprocessed_train_100_events/";
+      std::string dir = "/eos/user/s/srossiti/track-ml/preprocessed_train_all/";
       //filename is trackml_049.csv with 49 being the eventID
       std::stringstream eventid_ss;
-      eventid_ss << std::setw(3) << std::setfill('0') << (eventID-1);
+      eventid_ss << std::setw(4) << std::setfill('0') << (eventID-1);
       std::string filename = "trackml_" + eventid_ss.str() + ".csv";
       std::ifstream iFile(dir + filename);
       // std::ifstream iFile("data/track-ml/hits_high_eta.csv");

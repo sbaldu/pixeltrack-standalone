@@ -33,5 +33,6 @@ Manifest.toml
 /sycl
 /sycltest
 /optimization
+/optimization-old
 *.txt
 *.png
