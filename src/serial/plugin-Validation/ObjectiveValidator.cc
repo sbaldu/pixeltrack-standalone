@@ -86,7 +86,7 @@ void ObjectiveValidator::produce(edm::Event& iEvent, const edm::EventSetup& iSet
     if (pT > 0.9f && pnHits > 3) {
       auto index = hits->particleIndex(i);
       // Use emplace with hint for better performance
-      uniques.emplace(index, std::make_tuple(pT, hits->eta(i), hits->phi(i), pnHits));
+      uniques.emplace(index, std::make_tuple(pT, hits->particleEta(i), hits->particlePhi(i), pnHits));
     }
   }
 

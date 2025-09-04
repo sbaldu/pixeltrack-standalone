@@ -19,6 +19,8 @@ struct HitsCoordsSoA {
   std::vector<float> particle_Vzs;
   std::vector<float> particle_dRs;
   std::vector<uint16_t> particle_nHits;
+  std::vector<float> particle_etas;
+  std::vector<float> particle_phis;
 
   struct HitsCoordsSoAView {
     float* x;
@@ -32,6 +34,8 @@ struct HitsCoordsSoA {
     float* particle_pTs;
     float* particle_Vzs;
     float* particle_dRs;
+    float* particle_etas;
+    float* particle_phis;
     uint16_t* particle_nHits;
 
 	HitsCoordsSoAView() = default;

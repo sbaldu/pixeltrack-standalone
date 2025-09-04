@@ -67,7 +67,7 @@ namespace pixelgpudetails {
         getline(fileStream, temp, ',');
         hits.z.push_back(std::stof(temp));
         hits.r.push_back(std::sqrt(x * x + y * y));
-        int16_t phi{phi2short(std::atan(y / x))};
+        int16_t phi{phi2short(std::atan2(y, x))};
         hits.phi.push_back(phi);
         getline(fileStream, temp, ',');
         hits.particle_indexes.push_back(std::stol(temp));
@@ -84,6 +84,12 @@ namespace pixelgpudetails {
         hits.particle_dRs.push_back(std::stof(temp));
         getline(fileStream, temp, ',');
         hits.particle_nHits.push_back(std::stoi(temp));
+        // compute eta and phi for the particle too
+        float theta = std::atan2(hits.r.back(), hits.z.back());
+        float eta = -std::log(std::tan(0.5 * theta));
+        hits.particle_etas.push_back(eta);
+        float phi_f = std::atan2(y, x);
+        hits.particle_phis.push_back(phi_f);
         ++nHits;
       }
 
@@ -109,6 +115,8 @@ namespace pixelgpudetails {
         hits_sorted.particle_dRs.push_back(hits.particle_dRs[indexes[i]]);
         hits_sorted.particle_Vzs.push_back(hits.particle_Vzs[indexes[i]]);
         hits_sorted.particle_nHits.push_back(hits.particle_nHits[indexes[i]]);
+        hits_sorted.particle_etas.push_back(hits.particle_etas[indexes[i]]);
+        hits_sorted.particle_phis.push_back(hits.particle_phis[indexes[i]]);
       }
       auto currentLayerIndex = 0;
       auto lastLayerIndex = 0;

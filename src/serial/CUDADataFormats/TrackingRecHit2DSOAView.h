@@ -71,6 +71,10 @@ public:
   inline float particleVz(int i) const { return m_pVz[i]; }
   inline uint16_t& particleNHits(int i) { return m_pNHits[i]; }
   inline uint16_t particleNHits(int i) const { return m_pNHits[i]; }
+  inline float& particleEta(int i) { return m_eta[i]; }
+  inline float particleEta(int i) const { return m_eta[i]; }
+  inline float& particlePhi(int i) { return m_fphi[i]; }
+  inline float particlePhi(int i) const { return m_fphi[i]; }
 
 
   inline pixelCPEforGPU::ParamsOnGPU const& cpeParams() const { return *m_cpeParams; }
@@ -111,6 +115,8 @@ private:
   float* m_pdR;
   float* m_pVz;
   uint16_t* m_pNHits;
+  float* m_eta;
+  float* m_fphi;
 
 
   AverageGeometry*
