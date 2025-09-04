@@ -31,14 +31,18 @@ std::map<std::string, std::unordered_map<uint16_t,std::vector<float_t>>> Objecti
                                                                                           {"pt_sim2reco", {}},
                                                                                           {"pt_reco", {}},
                                                                                           {"pt_reco2sim", {}},
+                                                                                          {"pt_duplicates", {}},
                                                                                           {"eta_sim", {}},
                                                                                           {"eta_sim2reco", {}},
                                                                                           {"eta_reco", {}},
                                                                                           {"eta_reco2sim", {}},
+                                                                                          {"eta_duplicates", {}},
                                                                                           {"phi_sim", {}},
                                                                                           {"phi_sim2reco", {}},
                                                                                           {"phi_reco", {}},
-                                                                                          {"phi_reco2sim", {}}};
+                                                                                          {"phi_reco2sim", {}},
+                                                                                          {"phi_duplicates", {}}
+                                                                                        };
 
 ObjectiveValidator::ObjectiveValidator(edm::ProductRegistry& reg)
     : hitToken_(reg.consumes<TrackingRecHit2DCPU>()),
@@ -62,18 +66,21 @@ void ObjectiveValidator::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   std::vector<float> pt_sim2reco;
   std::vector<float> pt_reco;
   std::vector<float> pt_reco2sim;
+  std::vector<float> pt_duplicates;
   
   // Create eta vectors
   std::vector<float> eta_sim;
   std::vector<float> eta_sim2reco;
   std::vector<float> eta_reco;
   std::vector<float> eta_reco2sim;
+  std::vector<float> eta_duplicates;
 
   // Create phi vectors
   std::vector<float> phi_sim;
   std::vector<float> phi_sim2reco;
   std::vector<float> phi_reco;
   std::vector<float> phi_reco2sim;
+  std::vector<float> phi_duplicates;
   
 
   std::unordered_map<int64_t, std::tuple<float, float, float, int>> uniques;
@@ -133,6 +140,11 @@ void ObjectiveValidator::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       // Use insert for more efficient map operations
       auto [it, inserted] = recos.insert({majorityIndex, 0});
       ++it->second;
+      if (it->second > 1) {
+        pt_duplicates.push_back(pt);
+        eta_duplicates.push_back(eta);
+        phi_duplicates.push_back(phi);
+      }
       pt_reco2sim.push_back(pt);
       eta_reco2sim.push_back(eta);
       phi_reco2sim.push_back(phi);
@@ -160,14 +172,17 @@ void ObjectiveValidator::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   result["pt_sim2reco"][event_id] = pt_sim2reco;
   result["pt_reco"][event_id] = pt_reco;
   result["pt_reco2sim"][event_id] = pt_reco2sim;
+  result["pt_duplicates"][event_id] = pt_duplicates;
   result["eta_sim"][event_id] = eta_sim;
   result["eta_sim2reco"][event_id] = eta_sim2reco;
   result["eta_reco"][event_id] = eta_reco;
   result["eta_reco2sim"][event_id] = eta_reco2sim;
+  result["eta_duplicates"][event_id] = eta_duplicates;
   result["phi_sim"][event_id] = phi_sim;
   result["phi_sim2reco"][event_id] = phi_sim2reco;
   result["phi_reco"][event_id] = phi_reco;
   result["phi_reco2sim"][event_id] = phi_reco2sim;
+  result["phi_duplicates"][event_id] = phi_duplicates;
 
 }
 

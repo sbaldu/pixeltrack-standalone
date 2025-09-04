@@ -158,12 +158,12 @@ void ObjectiveProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   result["reconstructed"] += reconstructed_count;
   result["recotosim"] += recotosim_count;
   result["simtoreco"] += simtoreco_count;
+  result["duplicates"] += duplicates;
 }
 
 void ObjectiveProducer::endJob() {
   result["efficiency"] = result["simtoreco"] / result["simulated"];
   result["fakes"] = result["reconstructed"] - result["recotosim"];
-  result["duplicates"] = result["recotosim"] - result["simtoreco"];
   result["fake+duplicates_rate"] = (result["fakes"] + result["duplicates"]) / result["reconstructed"];
   result["fake_rate"] = result["fakes"] / result["reconstructed"];
   std::cout << "Writing objectives.txt" << '\n';
