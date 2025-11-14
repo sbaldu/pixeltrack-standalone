@@ -1,6 +1,10 @@
 
 #pragma once
 
+#include "AlpakaCore/config.h"
+#include "AlpakaDataFormats/alpaka/PixelTrackAlpaka.h"
+#include "AlpakaDataFormats/alpaka/ZVertexAlpaka.h"
+
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   namespace clueVertexFinder {
 

@@ -1,4 +1,16 @@
 
+#include "AlpakaCore/config.h"
+#include "AlpakaCore/memory.h"
+#include "AlpakaCore/workdivision.h"
+
+#include "gpuVertexFinder.h"
+#include "gpuClusterTracksByDensity.h"
+#include "gpuClusterTracksDBSCAN.h"
+#include "gpuClusterTracksIterative.h"
+#include "gpuFitVertices.h"
+#include "gpuSortByPt2.h"
+#include "gpuSplitVertices.h"
+
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   namespace clueVertexFinder {
     struct loadTracks {
@@ -82,7 +94,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         clusterer.make_clusters(queue, d_points);
         auto h_points = clue::copyToHost(queue, h_points, d_points);
         alpaka::wait(queue);
-		const auto nVertices = h_points.n_clusters();
+        const auto nVertices = h_points.n_clusters();
         alpaka::memcpy(queue,
                        cms::alpakatools::make_device_view<uint32_t>(queue, verticesView.nvFinal()),
                        cms::alpakatools::make_host_view<uint32_t>(nVertices));
