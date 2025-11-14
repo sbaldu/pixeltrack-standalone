@@ -6,17 +6,16 @@
 #include "AlpakaDataFormats/alpaka/ZVertexAlpaka.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
-  namespace clueVertexFinder {
+  namespace gpuVertexFinder {
 
-    class Producer {
+    class CLUEVertexProducer {
     public:
-      Producer(float dc, float rhoc, float dm, float seed_dc) : m_dc{dc}, m_rhoc{rhoc}, m_dm{dm}, m_seed_dc{seed_dc} {}
+      CLUEVertexProducer(float dc, float rhoc, float dm, float seed_dc)
+          : m_dc{dc}, m_rhoc{rhoc}, m_dm{dm}, m_seed_dc{seed_dc} {}
 
-      ~Producer() = default;
+      ~CLUEVertexProducer() = default;
 
-      ZVertexAlpaka makeAsync(::ALPAKA_ACCELERATOR_NAMESPACE::gpuVertexFinder::TkSoA const* tksoa,
-                              float ptMin,
-                              Queue& queue) const;
+      ZVertexAlpaka makeAsync(TkSoA const* tksoa, float ptMin, Queue& queue) const;
 
     private:
       float m_dc;
@@ -25,5 +24,5 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       float m_seed_dc;
     };
 
-  }  // namespace clueVertexFinder
+  }  // namespace gpuVertexFinder
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE
