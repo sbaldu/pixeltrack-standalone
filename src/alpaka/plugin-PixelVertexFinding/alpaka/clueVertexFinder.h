@@ -10,6 +10,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     class CLUEVertexProducer {
     public:
+      using TkSoA = pixelTrack::TrackSoA;
+
       CLUEVertexProducer(float dc, float rhoc, float dm, float seed_dc)
           : m_dc{dc}, m_rhoc{rhoc}, m_dm{dm}, m_seed_dc{seed_dc} {}
 
