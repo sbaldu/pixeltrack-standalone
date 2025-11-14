@@ -46,7 +46,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     cms::alpakatools::Product<Queue, PixelTrackAlpaka> const& tracksWrapped = iEvent.get(tokenTrack_);
     cms::alpakatools::ScopedContextProduce<Queue> ctx{tracksWrapped};
     auto const& tracks = ctx.get(tracksWrapped);
-    ctx.emplace(iEvent, tokenVertex_, );
+    clueVertexFinder::Producer algo(m_dc, m_rhoc, m_dm, m_seed_dc);
+    ctx.emplace(iEvent, tokenVertex_, algo.makeAsync(tracks.data(), m_ptMin, ctx.stream()));
   }
 
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE
