@@ -3,6 +3,7 @@
 
 #include "AlpakaDataFormats/alpaka/PixelTrackAlpaka.h"
 #include "AlpakaDataFormats/alpaka/ZVertexAlpaka.h"
+#include "VertexWorkspace.h"
 #include <alpaka/alpaka.hpp>
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
