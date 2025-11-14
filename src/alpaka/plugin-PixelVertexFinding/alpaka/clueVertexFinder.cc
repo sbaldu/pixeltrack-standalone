@@ -52,7 +52,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       }
     };
 
-    ZVertexAlpaka Producer::makeAsync(gpuVertexFinder::TkSoA const* tksoa, float ptMin, Queue& queue) const {
+    ZVertexAlpaka Producer::makeAsync(::ALPAKA_ACCELERATOR_NAMESPACE::gpuVertexFinder::TkSoA const* tksoa,
+                                      float ptMin,
+                                      Queue& queue) const {
       ALPAKA_ASSERT_ACC(tksoa);
       const auto maxTracks = tksoa::stride();
       std::cout << "max tracks = " << maxTracks << std::endl;

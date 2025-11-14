@@ -14,7 +14,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
       ~Producer() = default;
 
-      ZVertexAlpaka makeAsync(gpuVertexFinder::TkSoA const* tksoa, float ptMin, Queue& queue) const;
+      ZVertexAlpaka makeAsync(::ALPAKA_ACCELERATOR_NAMESPACE::gpuVertexFinder::TkSoA const* tksoa,
+                              float ptMin,
+                              Queue& queue) const;
 
     private:
       float m_dc;
