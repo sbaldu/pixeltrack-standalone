@@ -1,66 +1,30 @@
-//#include <iostream>
+// #include <iostream>
 
 #include "AlpakaCore/config.h"
 #include "AlpakaCore/memory.h"
 #include "AlpakaCore/workdivision.h"
 
-#include "gpuVertexFinder.h"
+#include "VertexWorkspace.h"
 #include "gpuClusterTracksByDensity.h"
 #include "gpuClusterTracksDBSCAN.h"
 #include "gpuClusterTracksIterative.h"
 #include "gpuFitVertices.h"
+#include "gpuLoadTracks.h"
 #include "gpuSortByPt2.h"
 #include "gpuSplitVertices.h"
+#include "gpuVertexFinder.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   namespace gpuVertexFinder {
 
-    struct loadTracks {
-      template <typename TAcc>
-      ALPAKA_FN_ACC void operator()(
-          const TAcc& acc, TkSoA const* ptracks, ZVertexSoA* soa, WorkSpace* pws, float ptMin) const {
-        ALPAKA_ASSERT_ACC(ptracks);
-        ALPAKA_ASSERT_ACC(soa);
-        auto const& tracks = *ptracks;
-        auto const& fit = tracks.stateAtBS;
-        auto const* quality = tracks.qualityData();
-
-        cms::alpakatools::for_each_element_in_grid_strided(acc, TkSoA::stride(), [&](uint32_t idx) {
-          auto nHits = tracks.nHits(idx);
-          if (nHits == 0)
-            return;  // this is a guard: maybe we need to move to nTracks...
-
-          // initialize soa...
-          soa->idv[idx] = -1;
-
-          if (nHits < 4)
-            return;  // no triplets
-          if (quality[idx] != trackQuality::loose)
-            return;
-
-          auto pt = tracks.pt(idx);
-
-          if (pt < ptMin)
-            return;
-
-          auto& data = *pws;
-          auto it = alpaka::atomicAdd(acc, &data.ntrks, 1u, alpaka::hierarchy::Blocks{});
-          data.itrk[it] = idx;
-          data.zt[it] = tracks.zip(idx);
-          data.ezt2[it] = fit.covariance(idx)(14);
-          data.ptt2[it] = pt * pt;
-        });
-      }
-    };
-
 // #define THREE_KERNELS
 #ifndef THREE_KERNELS
     struct vertexFinderOneKernel {
       template <typename TAcc>
-      ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                    gpuVertexFinder::ZVertices* pdata,
-                                    gpuVertexFinder::WorkSpace* pws,
+      ALPAKA_FN_ACC void operator()(const TAcc &acc,
+                                    gpuVertexFinder::ZVertices *pdata,
+                                    gpuVertexFinder::WorkSpace *pws,
                                     int minT,      // min number of neighbours to be "seed"
                                     float eps,     // max absolute distance to cluster
                                     float errmax,  // max error to be "seed"
@@ -80,9 +44,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 #else
     struct vertexFinderKernel1 {
       template <typename TAcc>
-      ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                    gpuVertexFinder::ZVertices* pdata,
-                                    gpuVertexFinder::WorkSpace* pws,
+      ALPAKA_FN_ACC void operator()(const TAcc &acc,
+                                    gpuVertexFinder::ZVertices *pdata,
+                                    gpuVertexFinder::WorkSpace *pws,
                                     int minT,      // min number of neighbours to be "seed"
                                     float eps,     // max absolute distance to cluster
                                     float errmax,  // max error to be "seed"
@@ -96,9 +60,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     struct vertexFinderKernel2 {
       template <typename TAcc>
-      ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                    gpuVertexFinder::ZVertices* pdata,
-                                    gpuVertexFinder::WorkSpace* pws) const {
+      ALPAKA_FN_ACC void operator()(const TAcc &acc,
+                                    gpuVertexFinder::ZVertices *pdata,
+                                    gpuVertexFinder::WorkSpace *pws) const {
         fitVertices(acc, pdata, pws, 5000.);
         alpaka::syncBlockThreads(acc);
         sortByPt2(acc, pdata, pws);
@@ -106,12 +70,12 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     };
 #endif
 
-    ZVertexAlpaka Producer::makeAsync(TkSoA const* tksoa, float ptMin, Queue& queue) const {
+    ZVertexAlpaka Producer::makeAsync(TkSoA const *tksoa, float ptMin, Queue &queue) const {
       // std::cout << "producing Vertices on GPU" << std::endl;
       ALPAKA_ASSERT_ACC(tksoa);
 
       ZVertexAlpaka vertices = cms::alpakatools::make_device_buffer<ZVertexSoA>(queue);
-      auto* soa = vertices.data();
+      auto *soa = vertices.data();
       ALPAKA_ASSERT_ACC(soa);
 
       auto ws_dBuf{cms::alpakatools::make_device_buffer<WorkSpace>(queue)};
@@ -128,7 +92,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       const uint32_t blockSize = 128;
       const uint32_t numberOfBlocks = cms::alpakatools::divide_up_by(TkSoA::stride(), blockSize);
       const auto loadTracksWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(numberOfBlocks, blockSize);
-      alpaka::enqueue(queue, alpaka::createTaskKernel<Acc1D>(loadTracksWorkDiv, loadTracks(), tksoa, soa, ws_d, ptMin));
+      alpaka::enqueue(queue, alpaka::createTaskKernel<Acc1D>(loadTracksWorkDiv, LoadTracks(), tksoa, soa, ws_d, ptMin));
 
       const auto finderSorterWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(1, 1024 - 256);
       const auto splitterFitterWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(1024, 128);
