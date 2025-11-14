@@ -13,10 +13,11 @@
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   namespace clueVertexFinder {
+
     struct loadTracks {
       template <typename TAcc>
       ALPAKA_FN_ACC void operator()(
-          const TAcc& acc, TkSoA const* ptracks, ZVertexSoA* soa, WorkSpace* pws, float ptMin) const {
+          const TAcc& acc, gpuVertexFinder::TkSoA const* ptracks, ZVertexSoA* soa, WorkSpace* pws, float ptMin) const {
         ALPAKA_ASSERT_ACC(ptracks);
         ALPAKA_ASSERT_ACC(soa);
         auto const& tracks = *ptracks;
@@ -51,7 +52,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       }
     };
 
-    ZVertexAlpaka Producer::makeAsync(TkSoA const* tksoa, float ptMin, Queue& queue) const {
+    ZVertexAlpaka Producer::makeAsync(gpuVertexFinder::TkSoA const* tksoa, float ptMin, Queue& queue) const {
       ALPAKA_ASSERT_ACC(tksoa);
       const auto maxTracks = tksoa::stride();
       std::cout << "max tracks = " << maxTracks << std::endl;
