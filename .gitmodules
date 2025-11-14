@@ -1,0 +1,3 @@
+[submodule "external/CLUEstering"]
+	path = external/CLUEstering
+	url = git@github.com:cms-patatrack/CLUEstering
