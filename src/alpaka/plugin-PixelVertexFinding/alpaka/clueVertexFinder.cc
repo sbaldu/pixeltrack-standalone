@@ -4,6 +4,7 @@
 #include "AlpakaCore/workdivision.h"
 
 #include "gpuVertexFinder.h"
+#include "clueVertexFinder.h"
 #include "gpuClusterTracksByDensity.h"
 #include "gpuClusterTracksDBSCAN.h"
 #include "gpuClusterTracksIterative.h"
