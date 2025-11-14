@@ -8,7 +8,7 @@
 #include "Framework/PluginFactory.h"
 #include "Framework/RunningAverage.h"
 
-#include "gpuVertexFinder.h"
+#include "clueVertexFinder.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
@@ -22,8 +22,6 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     edm::EDGetTokenT<cms::alpakatools::Product<Queue, PixelTrackAlpaka>> tokenTrack_;
     edm::EDPutTokenT<cms::alpakatools::Product<Queue, ZVertexAlpaka>> tokenVertex_;
-
-    // const gpuVertexFinder::Producer m_gpuAlgo;
 
     // Tracking cuts before sending tracks to vertex algo
     const float m_ptMin;
