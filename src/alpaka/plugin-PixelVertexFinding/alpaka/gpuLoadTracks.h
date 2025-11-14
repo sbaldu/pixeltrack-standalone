@@ -12,7 +12,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     struct loadTracks {
       template <typename TAcc>
       ALPAKA_FN_ACC void operator()(
-          const TAcc& acc, TkSoA const* ptracks, ZVertexSoA* soa, WorkSpace* pws, float ptMin) const {
+          const TAcc& acc, pixelTrack::TrackSoA const* ptracks, ZVertexSoA* soa, WorkSpace* pws, float ptMin) const {
         ALPAKA_ASSERT_ACC(ptracks);
         ALPAKA_ASSERT_ACC(soa);
         auto const& tracks = *ptracks;
