@@ -17,7 +17,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     ZVertexAlpaka CLUEVertexProducer::makeAsync(TkSoA const* tksoa, float ptMin, Queue& queue) const {
       ALPAKA_ASSERT_ACC(tksoa);
-      const auto maxTracks = tksoa::stride();
+      const auto maxTracks = TkSoA::stride();
       std::cout << "max tracks = " << maxTracks << std::endl;
       auto vertices = cms::alpakatools::make_device_buffer<ZVertexSoA>(queue);
       auto verticesView = vertices.view();
