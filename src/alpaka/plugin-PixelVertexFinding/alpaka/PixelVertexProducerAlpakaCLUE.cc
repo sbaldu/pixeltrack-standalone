@@ -36,9 +36,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         tokenVertex_(reg.produces<cms::alpakatools::Product<Queue, ZVertexAlpaka>>()),
         m_ptMin{0.5f},  // 0.5 GeV
         m_dc{0.04f},
-        m_rhoc{0.04f},
-        m_dm{0.04f},
-        m_seed_dc{0.04f} {}
+        m_rhoc{1.0f},
+        m_dm{0.07f},
+        m_seed_dc{0.07f} {}
 
   void PixelVertexProducerAlpakaCLUE::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     cms::alpakatools::Product<Queue, PixelTrackAlpaka> const& tracksWrapped = iEvent.get(tokenTrack_);
