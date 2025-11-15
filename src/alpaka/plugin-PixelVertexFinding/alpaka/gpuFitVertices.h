@@ -3,8 +3,9 @@
 
 #include "AlpakaCore/HistoContainer.h"
 #include "AlpakaCore/config.h"
-
-#include "gpuVertexFinder.h"
+#include "AlpakaDataFormats/ZVertexSoA.h"
+#include "VertexWorkspace.h"
+// #include "gpuVertexFinder.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
@@ -13,15 +14,15 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     template <typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE __attribute__((always_inline)) void fitVertices(
         const TAcc& acc,
-        ZVertices* pdata,
-        WorkSpace* pws,
+        ZVertexSoA* pdata,
+        WorkSpaceView ws,
         float chi2Max  // for outlier rejection
     ) {
       constexpr bool verbose = false;  // in principle the compiler should optmize out if false
 
       auto& __restrict__ data = *pdata;
-      auto& __restrict__ ws = *pws;
-      auto nt = ws.ntrks;
+      // auto& __restrict__ ws = *pws;
+      auto nt = *(ws.ntrks);
       float const* __restrict__ zt = ws.zt;
       float const* __restrict__ ezt2 = ws.ezt2;
       float* __restrict__ zv = data.zv;
@@ -107,8 +108,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     struct fitVerticesKernel {
       template <typename TAcc>
       ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                    ZVertices* pdata,
-                                    WorkSpace* pws,
+                                    ZVertexSoA* pdata,
+                                    WorkSpaceView pws,
                                     float chi2Max  // for outlier rejection
       ) const {
         fitVertices(acc, pdata, pws, chi2Max);

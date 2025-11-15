@@ -4,12 +4,9 @@
 #include "AlpakaCore/workdivision.h"
 
 #include "gpuLoadTracks.h"
-#include "gpuVertexFinder.h"
+// #include "gpuVertexFinder.h"
 #include "clueVertexFinder.h"
 #include <cstdint>
-#include "gpuClusterTracksByDensity.h"
-#include "gpuClusterTracksDBSCAN.h"
-#include "gpuClusterTracksIterative.h"
 #include "gpuFitVertices.h"
 #include "gpuSortByPt2.h"
 #include "gpuSplitVertices.h"
@@ -23,37 +20,29 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       const auto maxTracks = TkSoA::stride();
       auto vertices = cms::alpakatools::make_device_buffer<ZVertexSoA>(queue);
       auto verticesView = vertices.data();
-      // auto vertexTrackDataView = vertices.view<::reco::ZVertexTracksSoA>();
 
-      auto workspace = cms::alpakatools::make_device_buffer<WorkSpace>(queue);
-      auto workspaceView = workspace.data();
+      auto workspace = WorkSpace<Device>(queue, ZVertexSoA::MAXTRACKS);
+      auto workspaceView = workspace.view();
 
       auto nvFinalVerticesView = cms::alpakatools::make_device_view(alpaka::getDev(queue), verticesView->nvFinal);
       alpaka::memset(queue, nvFinalVerticesView, 0);
-      auto ntrksWorkspaceView = cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView->ntrks);
+      auto ntrksWorkspaceView = cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView.ntrks, 1);
       alpaka::memset(queue, ntrksWorkspaceView, 0);
-      auto nvIntermediateWorkspaceView =
-          cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView->nvIntermediate);
-      alpaka::memset(queue, nvIntermediateWorkspaceView, 0);
-
+      // auto nvIntermediateWorkspaceView =
+      //     cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView->nvIntermediate);
+      // alpaka::memset(queue, nvIntermediateWorkspaceView, 0);
 
       //Load Tracks
       const uint32_t blockSize = 128;
       const uint32_t gridSize = cms::alpakatools::divide_up_by(maxTracks, blockSize);
       const auto loadTracksWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(gridSize, blockSize);
-      alpaka::exec<Acc1D>(queue,
-                          loadTracksWorkDiv,
-                          LoadTracks{},
-                          tksoa,
-                          verticesView,
-                          // vertexTrackDataView,
-                          workspaceView,
-                          ptMin);
+      alpaka::exec<Acc1D>(queue, loadTracksWorkDiv, LoadTracks{}, tksoa, verticesView, workspaceView, ptMin);
 
       // Copy number of tracks to host
       auto nTracksBuf = cms::alpakatools::make_host_buffer<uint32_t>(queue);
-      alpaka::memcpy(
-          queue, nTracksBuf, cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), workspaceView->ntrks));
+      alpaka::memcpy(queue,
+                     nTracksBuf,
+                     cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), *(workspaceView.ntrks)));
       alpaka::wait(queue);
       const auto nTracks = *nTracksBuf;
 
@@ -61,7 +50,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       if (nTracks > 0) {
         ::clue::Clusterer<1> clusterer(queue, m_dc, m_rhoc, m_dm);
         ::clue::PointsDevice<1, Device> d_points(
-            queue, nTracks, workspaceView->zt, workspaceView->ptt2, workspaceView->iv);
+            queue, nTracks, workspaceView.zt, workspaceView.ptt2, workspaceView.iv);
         clusterer.make_clusters(queue, d_points);
         clue::PointsHost<1> h_points(queue, nTracks);
         ::clue::copyToHost(queue, h_points, d_points);
@@ -72,7 +61,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                        cms::alpakatools::make_host_view<uint32_t>(nVertices));
         alpaka::memcpy(
             queue,
-            cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), workspaceView->nvIntermediate),
+            cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), workspaceView.nvIntermediate),
             cms::alpakatools::make_host_view<uint32_t>(nVertices));
       }
       const auto finderSorterWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(1, 1024 - 128);

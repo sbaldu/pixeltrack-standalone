@@ -12,7 +12,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     struct LoadTracks {
       template <typename TAcc>
       ALPAKA_FN_ACC void operator()(
-          const TAcc &acc, pixelTrack::TrackSoA const *ptracks, ZVertexSoA *soa, WorkSpace *pws, float ptMin) const {
+          const TAcc &acc, pixelTrack::TrackSoA const *ptracks, ZVertexSoA *soa, WorkSpaceView pws, float ptMin) const {
         ALPAKA_ASSERT_ACC(ptracks);
         ALPAKA_ASSERT_ACC(soa);
         auto const &tracks = *ptracks;
@@ -37,12 +37,11 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           if (pt < ptMin)
             return;
 
-          auto &data = *pws;
-          auto it = alpaka::atomicAdd(acc, &data.ntrks, 1u, alpaka::hierarchy::Blocks{});
-          data.itrk[it] = idx;
-          data.zt[it] = tracks.zip(idx);
-          data.ezt2[it] = fit.covariance(idx)(14);
-          data.ptt2[it] = pt * pt;
+          auto it = alpaka::atomicAdd(acc, pws.ntrks, 1u, alpaka::hierarchy::Blocks{});
+          pws.itrk[it] = idx;
+          pws.zt[it] = tracks.zip(idx);
+          pws.ezt2[it] = fit.covariance(idx)(14);
+          pws.ptt2[it] = pt * pt;
         });
       }
     };

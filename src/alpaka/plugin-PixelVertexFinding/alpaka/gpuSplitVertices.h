@@ -3,8 +3,10 @@
 
 #include "AlpakaCore/HistoContainer.h"
 #include "AlpakaCore/config.h"
+#include "AlpakaDataFormats/ZVertexSoA.h"
 
-#include "gpuVertexFinder.h"
+#include "VertexWorkspace.h"
+// #include "gpuVertexFinder.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
@@ -12,16 +14,16 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     template <typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE __attribute__((always_inline)) void splitVertices(const TAcc& acc,
-                                                                                     ZVertices* pdata,
-                                                                                     WorkSpace* pws,
+                                                                                     ZVertexSoA* pdata,
+                                                                                     WorkSpaceView ws,
                                                                                      float maxChi2) {
       constexpr bool verbose = false;  // in principle the compiler should optmize out if false
 
       const uint32_t threadIdxLocal(alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u]);
 
       auto& __restrict__ data = *pdata;
-      auto& __restrict__ ws = *pws;
-      auto nt = ws.ntrks;
+      // auto& __restrict__ ws = *pws;
+      auto nt = *(ws.ntrks);
       float const* __restrict__ zt = ws.zt;
       float const* __restrict__ ezt2 = ws.ezt2;
       float* __restrict__ zv = data.zv;
@@ -153,7 +155,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     struct splitVerticesKernel {
       template <typename TAcc>
-      ALPAKA_FN_ACC void operator()(const TAcc& acc, ZVertices* pdata, WorkSpace* pws, float maxChi2) const {
+      ALPAKA_FN_ACC void operator()(const TAcc& acc, ZVertexSoA* pdata, WorkSpaceView pws, float maxChi2) const {
         splitVertices(acc, pdata, pws, maxChi2);
       }
     };

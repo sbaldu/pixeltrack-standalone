@@ -6,8 +6,11 @@
 #include "AlpakaCore/HistoContainer.h"
 #include "AlpakaCore/config.h"
 #include "AlpakaCore/radixSort.h"
+#include "AlpakaDataFormats/ZVertexSoA.h"
 
-#include "gpuVertexFinder.h"
+#include "VertexWorkspace.h"
+
+// #include "gpuVertexFinder.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
@@ -15,11 +18,11 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     template <typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE __attribute__((always_inline)) void sortByPt2(const TAcc& acc,
-                                                                                 ZVertices* pdata,
-                                                                                 WorkSpace* pws) {
+                                                                                 ZVertexSoA* pdata,
+                                                                                 WorkSpaceView ws) {
       auto& __restrict__ data = *pdata;
-      auto& __restrict__ ws = *pws;
-      auto nt = ws.ntrks;
+      // auto& __restrict__ ws = *pws;
+      auto nt = *(ws.ntrks);
       float const* __restrict__ ptt2 = ws.ptt2;
       uint32_t const& nvFinal = data.nvFinal;
 
@@ -66,7 +69,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     struct sortByPt2Kernel {
       template <typename TAcc>
-      ALPAKA_FN_ACC void operator()(const TAcc& acc, ZVertices* pdata, WorkSpace* pws) const {
+      ALPAKA_FN_ACC void operator()(const TAcc& acc, ZVertexSoA* pdata, WorkSpaceView pws) const {
         sortByPt2(acc, pdata, pws);
       }
     };
