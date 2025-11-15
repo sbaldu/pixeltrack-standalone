@@ -21,16 +21,21 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     ZVertexAlpaka CLUEVertexProducer::makeAsync(TkSoA const* tksoa, float ptMin, Queue& queue) const {
       ALPAKA_ASSERT_ACC(tksoa);
       const auto maxTracks = TkSoA::stride();
-      std::cout << "max tracks = " << maxTracks << std::endl;
       auto vertices = cms::alpakatools::make_device_buffer<ZVertexSoA>(queue);
       auto verticesView = vertices.data();
       // auto vertexTrackDataView = vertices.view<::reco::ZVertexTracksSoA>();
 
       auto workspace = cms::alpakatools::make_device_buffer<WorkSpace>(queue);
       auto workspaceView = workspace.data();
-      // const auto initWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(1, 1);
-      // alpaka::exec<Acc1D>(
-      //     queue, initWorkDiv, ALPAKA_ACCELERATOR_NAMESPACE::vertexFinder::Init{}, verticesView, workspaceView);
+
+      auto nvFinalVerticesView = cms::alpakatools::make_device_view(alpaka::getDev(queue), verticesView->nvFinal);
+      alpaka::memset(queue, nvFinalVerticesView, 0);
+      auto ntrksWorkspaceView = cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView->ntrks);
+      alpaka::memset(queue, ntrksWorkspaceView, 0);
+      auto nvIntermediateWorkspaceView =
+          cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView->nvIntermediate);
+      alpaka::memset(queue, nvIntermediateWorkspaceView, 0);
+
 
       //Load Tracks
       const uint32_t blockSize = 128;
