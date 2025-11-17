@@ -29,7 +29,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       float* __restrict__ wv = data.wv;
       float* __restrict__ chi2 = data.chi2;
       uint32_t& nvFinal = data.nvFinal;
-      uint32_t& nvIntermediate = ws.nvIntermediate;
+      uint32_t& nvIntermediate = *(ws.nvIntermediate);
 
       int32_t* __restrict__ nn = data.ndof;
       int32_t* __restrict__ iv = ws.iv;
@@ -58,15 +58,17 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
       // compute cluster location
       cms::alpakatools::for_each_element_in_block_strided(acc, nt, [&](uint32_t i) {
-        if (iv[i] >= 0 and iv[i] > 9990) {
+        if (iv[i] > 9990) {
           if (verbose)
             alpaka::atomicAdd(acc, &noise, 1, alpaka::hierarchy::Threads{});
         } else {
           // ALPAKA_ASSERT_ACC(iv[i] >= 0);
-          ALPAKA_ASSERT_ACC(iv[i] < int(foundClusters));
-          auto w = 1.f / ezt2[i];
-          alpaka::atomicAdd(acc, &zv[iv[i]], zt[i] * w, alpaka::hierarchy::Blocks{});
-          alpaka::atomicAdd(acc, &wv[iv[i]], w, alpaka::hierarchy::Blocks{});
+          if (iv[i] >= 0) {
+            ALPAKA_ASSERT_ACC(iv[i] < int(foundClusters));
+            auto w = 1.f / ezt2[i];
+            alpaka::atomicAdd(acc, &zv[iv[i]], zt[i] * w, alpaka::hierarchy::Blocks{});
+            alpaka::atomicAdd(acc, &wv[iv[i]], w, alpaka::hierarchy::Blocks{});
+          }
         }
       });
 
