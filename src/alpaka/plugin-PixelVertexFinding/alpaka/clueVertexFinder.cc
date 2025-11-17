@@ -52,10 +52,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         ::clue::PointsDevice<1, Device> d_points(
             queue, nTracks, workspaceView.zt, workspaceView.ptt2, workspaceView.iv);
         clusterer.make_clusters(queue, d_points);
-        clue::PointsHost<1> h_points(queue, nTracks);
-        ::clue::copyToHost(queue, h_points, d_points);
-        alpaka::wait(queue);
-        auto nVertices = static_cast<uint32_t>(h_points.n_clusters());
+        auto nVertices = static_cast<uint32_t>(d_points.n_clusters());
         alpaka::memcpy(queue,
                        cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), verticesView->nvFinal),
                        cms::alpakatools::make_host_view<uint32_t>(nVertices));
