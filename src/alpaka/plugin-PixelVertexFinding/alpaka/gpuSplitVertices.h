@@ -143,13 +143,12 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         // get a new global vertex
         auto& igv = alpaka::declareSharedVar<uint32_t, __COUNTER__>(acc);
         if (0 == threadIdxLocal)
-          igv = alpaka::atomicAdd(acc, &ws.nvIntermediate, 1u, alpaka::hierarchy::Blocks{});
+          igv = alpaka::atomicAdd(acc, ws.nvIntermediate, 1u, alpaka::hierarchy::Blocks{});
         alpaka::syncBlockThreads(acc);
         cms::alpakatools::for_each_element_in_block_strided(acc, nq, [&](uint32_t k) {
           if (1 == newV[k])
             iv[it[k]] = igv;
         });
-
       }  // loop on vertices
     }
 

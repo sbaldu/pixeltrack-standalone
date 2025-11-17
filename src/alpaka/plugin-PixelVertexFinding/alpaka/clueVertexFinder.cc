@@ -28,9 +28,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       alpaka::memset(queue, nvFinalVerticesView, 0);
       auto ntrksWorkspaceView = cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView.ntrks, 1);
       alpaka::memset(queue, ntrksWorkspaceView, 0);
-      // auto nvIntermediateWorkspaceView =
-      //     cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView->nvIntermediate);
-      // alpaka::memset(queue, nvIntermediateWorkspaceView, 0);
+      auto nvIntermediateWorkspaceView =
+          cms::alpakatools::make_device_view(alpaka::getDev(queue), workspaceView.nvIntermediate, 1);
+      alpaka::memset(queue, nvIntermediateWorkspaceView, 0);
 
       //Load Tracks
       const uint32_t blockSize = 128;
@@ -61,7 +61,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                        cms::alpakatools::make_host_view<uint32_t>(nVertices));
         alpaka::memcpy(
             queue,
-            cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), workspaceView.nvIntermediate),
+            cms::alpakatools::make_device_view<uint32_t>(alpaka::getDev(queue), *(workspaceView.nvIntermediate)),
             cms::alpakatools::make_host_view<uint32_t>(nVertices));
       }
       const auto finderSorterWorkDiv = cms::alpakatools::make_workdiv<Acc1D>(1, 1024 - 128);

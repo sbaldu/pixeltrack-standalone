@@ -41,8 +41,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     uint8_t* izt;    // interized z-position of input tracks
     int32_t* iv;     // vertex index for each associated track
 
-    uint32_t* ntrks;              // number of "selected tracks"
-    uint32_t nvIntermediate = 0;  // the number of vertices after splitting pruning etc.
+    uint32_t* ntrks;           // number of "selected tracks"
+    uint32_t* nvIntermediate;  // the number of vertices after splitting pruning etc.
 
     WorkSpaceView(std::byte* buffer, uint32_t n_tracks) {
       itrk = reinterpret_cast<uint16_t*>(buffer);
@@ -53,6 +53,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       iv = reinterpret_cast<int32_t*>(buffer + n_tracks * (sizeof(uint16_t) + 3 * sizeof(float) + sizeof(uint8_t)));
       ntrks = reinterpret_cast<uint32_t*>(
           buffer + n_tracks * (sizeof(uint16_t) + 3 * sizeof(float) + sizeof(uint8_t) + sizeof(int32_t)));
+      nvIntermediate = reinterpret_cast<uint32_t*>(
+          buffer + n_tracks * (sizeof(uint16_t) + 3 * sizeof(float) + sizeof(uint8_t) + sizeof(int32_t)) +
+          sizeof(uint32_t));
     }
   };
 
@@ -66,7 +69,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     template <typename TQueue>
     WorkSpace(TQueue& queue, uint32_t n_tracks)
         : m_buffer{cms::alpakatools::make_device_buffer<std::byte[]>(
-              queue, n_tracks * WorkSpaceView::size_bytes() + sizeof(uint32_t))},
+              queue, n_tracks * WorkSpaceView::size_bytes() + 2 * sizeof(uint32_t))},
           m_view{m_buffer.data(), n_tracks} {}
 
     const auto& view() const { return m_view; }
